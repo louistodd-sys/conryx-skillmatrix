@@ -113,9 +113,12 @@ export default function UsersPage() {
       .filter(Boolean);
 
   // ── Managed employees (deduplicated from TeamMember) ──────────────────────
+  // Include members who are either flagged as managed OR whose user_id is not an app user
+  const appUserIds = new Set(users.map(u => u.id));
   const employeeMap = {};
   teamMembers.forEach(m => {
-    if (!m.is_managed_member) return;
+    // Include if explicitly managed OR if not a registered app user
+    if (!m.is_managed_member && appUserIds.has(m.user_id)) return;
     if (!employeeMap[m.user_id]) employeeMap[m.user_id] = m;
   });
   const allEmployees = Object.values(employeeMap);

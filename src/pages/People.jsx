@@ -275,13 +275,13 @@ export default function People() {
         base44.entities.SkillCategory.filter({ organisation_id: org.id }),
         base44.entities.SkillAssessment.filter({ organisation_id: org.id }),
         base44.entities.Team.filter({ organisation_id: org.id }),
-        base44.entities.RequiredSkill.filter({ organisation_id: org.id }),
+        base44.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
       ]);
 
       // Managers only see their own teams' members
       let filteredTM = tm;
       if (role === 'manager') {
-        const myTeams = te.filter(t => t.manager_user_id === user.id).map(t => t.id);
+        const myTeams = te.filter(t => Array.isArray(t.manager_ids) ? t.manager_ids.includes(user.id) : t.manager_user_id === user.id).map(t => t.id);
         filteredTM = tm.filter(m => myTeams.includes(m.team_id));
       }
 
