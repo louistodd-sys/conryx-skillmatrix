@@ -31,7 +31,7 @@ export default function SkillFormModal({ skill, categories, orgId, onClose, onSa
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="bg-card rounded-xl border border-border shadow-xl w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <h2 className="text-base font-semibold">{skill ? 'Edit Skill' : 'Add Skill'}</h2>

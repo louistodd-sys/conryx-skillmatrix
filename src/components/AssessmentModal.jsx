@@ -75,7 +75,7 @@ export default function AssessmentModal({ userId, userName, skill, existingAsses
       ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={e => e.target === e.currentTarget && onClose()}>
       <div
         className="bg-card rounded-xl border border-border shadow-xl w-full max-w-md mx-4"
         onClick={e => e.stopPropagation()}
@@ -106,17 +106,9 @@ export default function AssessmentModal({ userId, userName, skill, existingAsses
             <Label>Proficiency Level <span className="text-destructive">*</span></Label>
             <div className="space-y-1.5 mt-2">
               {levelOptions.map(opt => (
-                <label key={opt.value} className="flex items-center gap-3 cursor-pointer group">
-                  <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      form.proficiency_level === opt.value
-                        ? 'border-primary bg-primary'
-                        : 'border-border group-hover:border-muted-foreground'
-                    }`}
-                  >
-                    {form.proficiency_level === opt.value && (
-                      <div className="w-2 h-2 rounded-full bg-primary-foreground" />
-                    )}
+                <label key={opt.value} className="flex items-center gap-3 cursor-pointer group" onClick={() => setForm({ ...form, proficiency_level: opt.value })}>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${form.proficiency_level === opt.value ? 'border-primary bg-primary' : 'border-border group-hover:border-muted-foreground'}`}>
+                    {form.proficiency_level === opt.value && <div className="w-2 h-2 rounded-full bg-primary-foreground" />}
                   </div>
                   <span className="text-sm">{opt.label}</span>
                 </label>
