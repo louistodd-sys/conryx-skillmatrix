@@ -1,8 +1,8 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Grid3X3, BarChart3, Users, FolderKanban,
-  BookOpen, ScrollText, Settings, Bell, Menu, X, LogOut,
+  BookOpen, ScrollText, Settings, Bell, Menu, X, LogOut, Zap,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ const adminNav = [
   { label: 'Skills Library',icon: BookOpen,          path: '/skills-library' },
   { label: 'Audit Log',     icon: ScrollText,        path: '/audit-log' },
   { label: 'Settings',      icon: Settings,          path: '/settings' },
+  { label: 'My Skills',     icon: BookOpen,          path: '/my-profile' },
 ];
 
 const managerNav = [
@@ -25,6 +26,8 @@ const managerNav = [
   { label: 'Skills Matrix', icon: Grid3X3,          path: '/matrix' },
   { label: 'Gap Analysis',  icon: BarChart3,         path: '/gap-analysis' },
   { label: 'My Team',       icon: FolderKanban,      path: '/teams' },
+  { label: 'Users',         icon: Users,             path: '/users' },
+  { label: 'My Skills',     icon: BookOpen,          path: '/my-profile' },
 ];
 
 const viewerNav = [
@@ -139,21 +142,27 @@ export default function Layout() {
           </div>
         </nav>
 
+        {/* Trial banner */}
+        {user?.role === 'admin' && org && !org.subscription_plan || org?.subscription_plan === 'trial' ? (
+          <div className="mx-3 mb-2">
+            <Link to="/upgrade" className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-lg border border-primary/20 hover:bg-primary/20 transition-colors">
+              <Zap className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span className="text-xs text-primary font-medium">Upgrade to Pro</span>
+            </Link>
+          </div>
+        ) : null}
+
         {/* User section */}
         <div className="border-t border-border p-3 shrink-0">
           <div className="flex items-center gap-3 px-2 py-2">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold shrink-0">
+            <Link to="/my-profile" className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold shrink-0 hover:bg-primary/20 transition-colors">
               {(user?.full_name || 'U')[0].toUpperCase()}
-            </div>
+            </Link>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">{user?.full_name || 'User'}</p>
+              <Link to="/my-profile" className="text-sm font-medium text-foreground truncate block hover:text-primary">{user?.full_name || 'User'}</Link>
               <p className="text-xs text-muted-foreground capitalize">{role}</p>
             </div>
-            <button
-              onClick={() => base44.auth.logout()}
-              title="Logout"
-              className="shrink-0"
-            >
+            <button onClick={() => base44.auth.logout()} title="Logout" className="shrink-0">
               <LogOut className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
             </button>
           </div>
