@@ -138,15 +138,16 @@ export default function PeoplePage() {
   useEffect(() => { if (org) loadData(); }, [org]);
 
   async function loadData() {
-    const [tm, t, s, c, a, trs, u] = await Promise.all([
+    const [tm, t, s, c, a, trs] = await Promise.all([
       base44.entities.TeamMember.filter({ organisation_id: org.id }),
       base44.entities.Team.filter({ organisation_id: org.id }),
       base44.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
       base44.entities.SkillCategory.filter({ organisation_id: org.id }),
       base44.entities.SkillAssessment.filter({ organisation_id: org.id }),
       base44.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
-      base44.entities.User.filter({ organisation_id: org.id }),
     ]);
+    let u = [];
+    try { u = await base44.entities.User.filter({ organisation_id: org.id }); } catch (_) {}
     setTeamMembers(tm);
     setTeams(t);
     setSkills(s);
