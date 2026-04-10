@@ -97,7 +97,7 @@ export default function UserProfile() {
 
   async function loadData() {
     const [usersRes, s, c, a, tm, t, trs] = await Promise.all([
-      base44.entities.User.filter({ id: userId }),
+      base44.entities.User.filter({ organisation_id: org.id }),
       base44.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
       base44.entities.SkillCategory.filter({ organisation_id: org.id }),
       base44.entities.SkillAssessment.filter({ organisation_id: org.id, user_id: userId }),
@@ -105,7 +105,7 @@ export default function UserProfile() {
       base44.entities.Team.filter({ organisation_id: org.id }),
       base44.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
     ]);
-    setProfileUser(usersRes[0] || null);
+    setProfileUser(usersRes.find(u => u.id === userId) || null);
     setSkills(s);
     setCategories(c.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)));
     setAssessments(a.sort((a, b) => (a.assessed_date || '').localeCompare(b.assessed_date || '')));
