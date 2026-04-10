@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Trash2, Download, Loader2, Upload, X, CreditCard, AlertTriangle } from 'lucide-react';
+import { Save, Trash2, Download, Loader2, Upload, X, CreditCard, AlertTriangle, TrendingUp } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
@@ -98,6 +98,8 @@ export default function Settings() {
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoPreview, setLogoPreview] = useState(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [usage, setUsage]             = useState({ users: 0, employees: 0, teams: 0, skills: 0 });
+  const [usageLoaded, setUsageLoaded] = useState(false);
 
   useEffect(() => {
     if (org) {
@@ -110,6 +112,25 @@ export default function Settings() {
       });
       setLogoPreview(org.logo_url || null);
     }
+  }, [org]);
+
+  // Load current usage counts for the plan meter
+  useEffect(() => {
+    if (!org) return;
+    Promise.all([
+      base44.entities.User.filter({ organisation_id: org.id }),
+      base44.entities.TeamMember.filter({ organisation_id: org.id }),
+      base44.entities.Team.filter({ organisation_id: org.id }),
+      base44.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
+    ]).then(([users, members, teams, skills]) => {
+      const seen = new Set();
+      let employees = 0;
+      members.forEach(m => {
+        if (m.is_managed_member && !seen.has(m.user_id)) { seen.add(m.user_id); employees++; }
+      });
+      setUsage({ users: users.length, employees, teams: teams.length, skills: skills.length });
+      setUsageLoaded(true);
+    });
   }, [org]);
 
   const handleSave = async () => {
@@ -230,6 +251,27 @@ export default function Settings() {
 
   if (!org) return null;
 
+  // ── Plan limits ────────────────────────────────────────────────────────────
+  const PLAN_LIMITS = {
+    trial:   { users: 5,        employees: 10,       teams: 3,        skills: 15       },
+    free:    { users: 5,        employees: 10,       teams: 3,        skills: 15       },
+    starter: { users: 25,       employees: Infinity, teams: 10,       skills: 75       },
+    growth:  { users: Infinity, employees: Infinity, teams: Infinity, skills: Infinity },
+    pro:     { users: Infinity, employees: Infinity, teams: Infinity, skills: Infinity },
+  };
+  const planKey    = (org.subscription_plan || 'trial').toLowerCase();
+  const limits     = PLAN_LIMITS[planKey] || PLAN_LIMITS.trial;
+  const isFreeTier = planKey === 'trial' || planKey === 'free';
+
+  const PLAN_LABELS = {
+    trial:   { label: 'Trial',   color: 'bg-amber-100 text-amber-800' },
+    free:    { label: 'Free',    color: 'bg-amber-100 text-amber-800' },
+    starter: { label: 'Starter', color: 'bg-blue-100  text-blue-800'  },
+    growth:  { label: 'Growth',  color: 'bg-primary/10 text-primary'  },
+    pro:     { label: 'Pro',     color: 'bg-primary/10 text-primary'  },
+  };
+  const planMeta = PLAN_LABELS[planKey] || PLAN_LABELS.trial;
+
   return (
     <div className="space-y-8 max-w-2xl">
       <div>
@@ -344,23 +386,94 @@ export default function Settings() {
         </Button>
       </section>
 
-      {/* Subscription */}
-      <section className="bg-card border border-border rounded-xl p-5 space-y-3">
-        <h2 className="text-base font-semibold">Subscription & Billing</h2>
-        <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border">
-          <div>
-            <p className="text-sm font-medium text-foreground capitalize">
-              {org.subscription_plan || 'Trial'} Plan
-            </p>
-            <p className="text-xs text-muted-foreground capitalize">
-              Status: {org.subscription_status || 'trial'}
-            </p>
-          </div>
-          <CreditCard className="w-5 h-5 text-muted-foreground" />
+      {/* Subscription & Billing */}
+      <section className="bg-card border border-border rounded-xl p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold">Subscription & Billing</h2>
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide ${planMeta.color}`}>
+            {planMeta.label}
+          </span>
         </div>
+
+        {/* Usage meters */}
+        {usageLoaded && (
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'App Users',          value: usage.users,     limit: limits.users     },
+              { label: 'Managed Employees',  value: usage.employees, limit: limits.employees },
+              { label: 'Teams',              value: usage.teams,     limit: limits.teams     },
+              { label: 'Active Skills',      value: usage.skills,    limit: limits.skills    },
+            ].map(({ label, value, limit }) => {
+              const unlimited = limit === Infinity;
+              const pct       = unlimited ? 0 : Math.min((value / limit) * 100, 100);
+              const atLimit   = !unlimited && pct >= 100;
+              const nearLimit = !unlimited && pct >= 80 && pct < 100;
+              const barColor  = atLimit ? 'bg-red-500' : nearLimit ? 'bg-amber-500' : 'bg-primary';
+              return (
+                <div
+                  key={label}
+                  className={`rounded-lg border p-3 ${atLimit ? 'border-red-200 bg-red-50' : 'border-border'}`}
+                >
+                  <div className="flex justify-between items-baseline mb-1.5">
+                    <span className="text-xs font-medium text-foreground">{label}</span>
+                    <span className={`text-xs font-bold ${atLimit ? 'text-red-600' : 'text-muted-foreground'}`}>
+                      {value}{unlimited ? '' : ` / ${limit}`}
+                    </span>
+                  </div>
+                  {unlimited ? (
+                    <p className="text-[10px] text-muted-foreground">Unlimited</p>
+                  ) : (
+                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${barColor}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  )}
+                  {atLimit && (
+                    <p className="text-[10px] text-red-600 font-medium mt-1">Limit reached — upgrade to add more</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Upgrade CTA (trial / free only) */}
+        {isFreeTier && (
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <TrendingUp className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">Unlock the full platform</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  <strong>Starter</strong> — 25 app users, unlimited managed employees, 10 teams, 75 skills · from £49/month
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  <strong>Pro</strong> — Everything unlimited, custom branding, API access, SLA support · from £149/month
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" asChild>
+                <a href="mailto:sales@skillsmatrix.io?subject=SkillsMatrix%20Starter%20upgrade">
+                  Upgrade to Starter →
+                </a>
+              </Button>
+              <Button size="sm" variant="outline" asChild>
+                <a href="mailto:sales@skillsmatrix.io?subject=SkillsMatrix%20Pro%20enquiry">
+                  Talk to Sales
+                </a>
+              </Button>
+            </div>
+          </div>
+        )}
+
         <p className="text-xs text-muted-foreground">
-          To upgrade, change your plan, or update billing details, contact{' '}
-          <a href="mailto:billing@skillsmatrix.io" className="text-primary hover:underline">billing@skillsmatrix.io</a>
+          To update billing details or manage your subscription, email{' '}
+          <a href="mailto:billing@skillsmatrix.io" className="text-primary hover:underline">
+            billing@skillsmatrix.io
+          </a>
         </p>
       </section>
 
