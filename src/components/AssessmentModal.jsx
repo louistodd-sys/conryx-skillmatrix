@@ -128,30 +128,21 @@ export default function AssessmentModal({ userId, userName, skill, existingAsses
             />
           </div>
 
-          {/* Expiry date — required if skill.requires_expiry */}
-          {skill.requires_expiry && (
-            <div>
-              <Label>Expiry Date <span className="text-destructive">*</span></Label>
-              <Input
-                type="date"
-                value={form.expiry_date}
-                onChange={e => setForm({ ...form, expiry_date: e.target.value })}
-                required
-                className="mt-1"
-              />
-            </div>
-          )}
-          {!skill.requires_expiry && (
-            <div>
-              <Label>Expiry Date <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
-              <Input
-                type="date"
-                value={form.expiry_date}
-                onChange={e => setForm({ ...form, expiry_date: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-          )}
+          {/* Expiry date — always optional; recommended label when skill has expiry */}
+          <div>
+            <Label>
+              Expiry Date{' '}
+              <span className="text-muted-foreground text-xs font-normal">
+                {skill.requires_expiry ? '(recommended)' : '(optional)'}
+              </span>
+            </Label>
+            <Input
+              type="date"
+              value={form.expiry_date}
+              onChange={e => setForm({ ...form, expiry_date: e.target.value })}
+              className="mt-1"
+            />
+          </div>
 
           {/* Notes */}
           <div>

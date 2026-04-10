@@ -18,6 +18,7 @@ import AuditLog from './pages/AuditLog';
 import Settings from './pages/Settings';
 import MyProfile from './pages/MyProfile';
 import Onboarding from './pages/Onboarding';
+import People from './pages/People';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -52,6 +53,7 @@ const AuthenticatedApp = () => {
         <Route path="/gap-analysis" element={<GapAnalysis />} />
         <Route path="/teams" element={<Teams />} />
         <Route path="/teams/:teamId" element={<TeamDetail />} />
+        <Route path="/people" element={<People />} />
         <Route path="/users" element={<UsersPage />} />
         <Route path="/users/:userId" element={<UserProfile />} />
         <Route path="/skills-library" element={<SkillsLibrary />} />

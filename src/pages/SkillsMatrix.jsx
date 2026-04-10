@@ -41,33 +41,53 @@ function pctStyle(pct) {
 // ─── Status key legend ─────────────────────────────────────────────────────
 function MatrixLegend() {
   return (
-    <div className="flex flex-wrap items-center gap-x-8 gap-y-3 rounded-xl border border-border bg-card px-5 py-4 shadow-sm">
-      <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
-        Status Key
-      </span>
-      {[
-        { s: 'green', label: 'Current',    desc: 'Competent & valid',  ex: '✓' },
-        { s: 'amber', label: 'Expiring',   desc: 'Renewal due soon',   ex: '3' },
-        { s: 'red',   label: 'Gap',        desc: 'Expired or not met', ex: '✗' },
-        { s: 'grey',  label: 'Unassessed', desc: 'No record held',     ex: '—' },
-      ].map(({ s, label, desc, ex }) => (
-        <div key={s} className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-[22px] font-bold shrink-0 select-none"
-            style={{
-              background: S[s].bg,
-              color: S[s].fg,
-              boxShadow: s === 'grey' ? 'inset 0 0 0 1.5px #cbd5e1' : 'none',
-            }}
-          >
-            {ex}
+    <div className="rounded-xl border border-border bg-card px-5 py-4 shadow-sm space-y-3">
+      {/* Status colours row */}
+      <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+        <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
+          Status
+        </span>
+        {[
+          { s: 'green', label: 'Current',    desc: 'Competent & valid'  },
+          { s: 'amber', label: 'Expiring',   desc: 'Renewal due soon'   },
+          { s: 'red',   label: 'Gap',        desc: 'Expired or not met' },
+          { s: 'grey',  label: 'Unassessed', desc: 'No record held'     },
+        ].map(({ s, label, desc }) => (
+          <div key={s} className="flex items-center gap-2.5">
+            <div
+              className="w-8 h-8 rounded-lg shrink-0"
+              style={{
+                background: S[s].bg,
+                boxShadow: s === 'grey' ? 'inset 0 0 0 1.5px #cbd5e1' : 'none',
+              }}
+            />
+            <div className="leading-tight">
+              <p className="text-sm font-bold text-foreground">{label}</p>
+              <p className="text-xs text-muted-foreground">{desc}</p>
+            </div>
           </div>
-          <div className="leading-tight">
-            <p className="text-sm font-bold text-foreground">{label}</p>
-            <p className="text-xs text-muted-foreground">{desc}</p>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-border" />
+
+      {/* Cell value reference row */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
+          Cell value
+        </span>
+        <span className="text-xs text-muted-foreground">
+          <span className="font-semibold text-foreground">✓</span> / <span className="font-semibold text-foreground">✗</span> = Pass / Fail (binary skills)
+        </span>
+        <span className="text-xs text-muted-foreground">
+          <span className="font-semibold text-foreground">0–4</span> = Proficiency level (levelled skills)
+          <span className="ml-2 text-muted-foreground/70">· 0 Not trained · 1 Awareness · 2 Working knowledge · 3 Competent · 4 Expert</span>
+        </span>
+        <span className="text-xs text-muted-foreground">
+          <span className="font-semibold text-foreground">—</span> = Not yet assessed
+        </span>
+      </div>
     </div>
   );
 }

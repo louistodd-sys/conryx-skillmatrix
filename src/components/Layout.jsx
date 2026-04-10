@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
-  LayoutDashboard, Grid3X3, BarChart3, Users, FolderKanban,
+  LayoutDashboard, Grid3X3, BarChart3, Users, Users2, FolderKanban,
   BookOpen, ScrollText, Settings, Bell, Menu, X, LogOut,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
@@ -14,6 +14,7 @@ const adminNav = [
   { label: 'Skills Matrix', icon: Grid3X3,          path: '/matrix' },
   { label: 'Gap Analysis',  icon: BarChart3,         path: '/gap-analysis' },
   { label: 'Teams',         icon: FolderKanban,      path: '/teams' },
+  { label: 'People',        icon: Users2,            path: '/people' },
   { label: 'Users',         icon: Users,             path: '/users' },
   { label: 'Skills Library',icon: BookOpen,          path: '/skills-library' },
   { label: 'Audit Log',     icon: ScrollText,        path: '/audit-log' },
@@ -25,6 +26,7 @@ const managerNav = [
   { label: 'Skills Matrix', icon: Grid3X3,          path: '/matrix' },
   { label: 'Gap Analysis',  icon: BarChart3,         path: '/gap-analysis' },
   { label: 'My Team',       icon: FolderKanban,      path: '/teams' },
+  { label: 'People',        icon: Users2,            path: '/people' },
 ];
 
 const viewerNav = [
@@ -189,7 +191,7 @@ export default function Layout() {
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="max-w-7xl mx-auto px-4 lg:px-6 py-6">
+          <div className="w-full px-4 lg:px-6 py-6">
             <Outlet />
           </div>
         </main>

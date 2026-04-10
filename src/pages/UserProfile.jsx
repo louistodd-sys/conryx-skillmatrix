@@ -246,7 +246,7 @@ export default function UserProfile() {
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link to="/users" className="hover:text-foreground flex items-center gap-1">
-          <ArrowLeft className="w-3.5 h-3.5" /> People
+          <ArrowLeft className="w-3.5 h-3.5" /> Users
         </Link>
         <span>/</span>
         <span className="text-foreground font-medium">{profileUser.full_name}</span>
