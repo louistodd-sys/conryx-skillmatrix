@@ -12,7 +12,10 @@ import { differenceInDays, parseISO, isValid } from 'date-fns';
  *  5. Otherwise → green
  */
 export function getRAGStatus(assessment, skill, teamRequirement) {
-  if (!assessment) return 'grey';
+  if (!assessment) {
+    if (teamRequirement?.is_required) return 'red';
+    return 'grey';
+  }
 
   const { proficiency_level, expiry_date } = assessment;
   const today = new Date();
@@ -32,8 +35,8 @@ export function getRAGStatus(assessment, skill, teamRequirement) {
   }
 
   if (teamRequirement && teamRequirement.is_required) {
-    const minProf = teamRequirement.minimum_proficiency ?? 1;
-    if ((proficiency_level ?? 0) < minProf) return 'red';
+    const minProf = Number(teamRequirement.minimum_proficiency ?? 1);
+    if (Number(proficiency_level ?? 0) < minProf) return 'red';
   }
 
   return 'green';
@@ -62,11 +65,12 @@ export function getRAGLabel(status, assessment, skill, teamRequirement) {
 
 export function getProficiencyLabel(level, scaleType) {
   if (level === null || level === undefined) return 'Not Assessed';
+  const n = Number(level);
   if (scaleType === 'binary') {
-    return level >= 1 ? 'Competent' : 'Not Competent';
+    return n >= 1 ? 'Competent' : 'Not Competent';
   }
   const labels = ['Not Trained', 'Awareness', 'Working Knowledge', 'Competent', 'Expert'];
-  return labels[level] ?? 'Unknown';
+  return labels[n] ?? 'Unknown';
 }
 
 export function getRAGColors(status) {

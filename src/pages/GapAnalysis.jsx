@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { BarChart3, Filter } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
@@ -10,8 +11,9 @@ import { Link } from 'react-router-dom';
 
 export default function GapAnalysis() {
   const { org, user } = useOrganisation();
+  const [searchParams] = useSearchParams();
   const [teams, setTeams]           = useState([]);
-  const [selectedTeam, setSelectedTeam] = useState('');
+  const [selectedTeam, setSelectedTeam] = useState(searchParams.get('team') || '');
   const [members, setMembers]       = useState([]);
   const [skills, setSkills]         = useState([]);
   const [categories, setCategories] = useState([]);
@@ -46,7 +48,11 @@ export default function GapAnalysis() {
     setCategories(c);
     setAssessments(a);
     setReqSkills(trs);
-    if (visible.length > 0) setSelectedTeam(visible[0].id);
+    if (visible.length > 0) {
+      const urlTeam = searchParams.get('team');
+      const valid = urlTeam && visible.some(t => t.id === urlTeam);
+      setSelectedTeam(valid ? urlTeam : visible[0].id);
+    }
     setLoading(false);
   }
 
