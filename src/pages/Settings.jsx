@@ -137,16 +137,11 @@ export default function Settings() {
       return;
     }
     setLogoUploading(true);
-    // Convert to base64 data URL for preview; in production replace with a signed upload
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const dataUrl = ev.target.result;
-      setLogoPreview(dataUrl);
-      await base44.entities.Organisation.update(org.id, { logo_url: dataUrl });
-      await refreshOrg();
-      setLogoUploading(false);
-    };
-    reader.readAsDataURL(file);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setLogoPreview(file_url);
+    await base44.entities.Organisation.update(org.id, { logo_url: file_url });
+    await refreshOrg();
+    setLogoUploading(false);
   };
 
   const handleRemoveLogo = async () => {
