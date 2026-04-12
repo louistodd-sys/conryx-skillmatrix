@@ -336,17 +336,17 @@ export default function UsersPage() {
                         </td>
                         <td className="px-4 py-3 text-sm text-muted-foreground hidden md:table-cell">{u.email}</td>
                         <td className="px-4 py-3">
-                          <Badge variant="secondary" className="text-[10px] capitalize">{u.role || 'viewer'}</Badge>
+                          <Badge variant="secondary" className="text-xs capitalize">{u.role || 'viewer'}</Badge>
                         </td>
                         <td className="px-4 py-3 hidden sm:table-cell">
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium capitalize ${STATUS_COLORS[status] || STATUS_COLORS.inactive}`}>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${STATUS_COLORS[status] || STATUS_COLORS.inactive}`}>
                             {status}
                           </span>
                         </td>
                         <td className="px-4 py-3 hidden lg:table-cell">
                           <div className="flex gap-1 flex-wrap">
                             {getUserTeams(u.id).map((t, i) => (
-                              <Badge key={i} variant="outline" className="text-[10px]">{t}</Badge>
+                              <Badge key={i} variant="outline" className="text-xs">{t}</Badge>
                             ))}
                           </div>
                         </td>
@@ -402,7 +402,7 @@ export default function UsersPage() {
                               <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
                                 {e.user_name || 'Unnamed'}
                               </span>
-                              <span className="ml-2 text-[10px] bg-muted text-muted-foreground rounded px-1.5 py-0.5">
+                              <span className="ml-2 text-xs bg-muted text-muted-foreground rounded px-1.5 py-0.5">
                                 Managed
                               </span>
                             </div>
@@ -414,7 +414,7 @@ export default function UsersPage() {
                         <td className="px-4 py-3 hidden lg:table-cell">
                           <div className="flex gap-1 flex-wrap">
                             {empTeams.map((t, i) => (
-                              <Badge key={i} variant="outline" className="text-[10px]">{t}</Badge>
+                              <Badge key={i} variant="outline" className="text-xs">{t}</Badge>
                             ))}
                           </div>
                         </td>
@@ -482,10 +482,10 @@ export default function UsersPage() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <Badge variant="secondary" className="text-[10px] capitalize">{inv.role}</Badge>
+                          <Badge variant="secondary" className="text-xs capitalize">{inv.role}</Badge>
                         </td>
                         <td className="px-4 py-3 hidden sm:table-cell">
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium capitalize ${
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${
                             inv.status === 'pending' ? 'bg-amber-100 text-amber-700' :
                             inv.status === 'revoked' ? 'bg-red-100 text-red-700'    :
                             inv.status === 'expired' ? 'bg-gray-100 text-gray-600'  :

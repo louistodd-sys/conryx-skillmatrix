@@ -194,7 +194,7 @@ export default function AuditLog() {
                               : '—'}
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${actionColor(log.action)}`}>
+                            <span className={`text-xs font-mono px-1.5 py-0.5 rounded ${actionColor(log.action)}`}>
                               {log.action}
                             </span>
                           </td>
@@ -210,7 +210,7 @@ export default function AuditLog() {
                                 <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1">
                                   {Object.entries(detail).map(([k, v]) => (
                                     <div key={k}>
-                                      <dt className="text-[10px] text-muted-foreground capitalize">{k.replace(/_/g, ' ')}</dt>
+                                      <dt className="text-xs text-muted-foreground capitalize">{k.replace(/_/g, ' ')}</dt>
                                       <dd className="text-xs font-medium text-foreground break-all">
                                         {typeof v === 'object' ? JSON.stringify(v) : String(v ?? '—')}
                                       </dd>

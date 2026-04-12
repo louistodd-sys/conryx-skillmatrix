@@ -144,7 +144,7 @@ export default function SkillsLibrary() {
                     <td className="px-4 py-3 text-xs text-muted-foreground capitalize">{skill.scale_type}</td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">{skill.requires_expiry ? 'Yes' : 'No'}</td>
                     <td className="px-4 py-3">
-                      <Badge variant={skill.status === 'active' ? 'default' : 'secondary'} className="text-[10px]">
+                      <Badge variant={skill.status === 'active' ? 'default' : 'secondary'} className="text-xs">
                         {skill.status}
                       </Badge>
                     </td>

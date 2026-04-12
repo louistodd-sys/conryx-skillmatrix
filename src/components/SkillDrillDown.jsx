@@ -106,7 +106,7 @@ export default function SkillDrillDown({ skillItem, teamMembers, currentAssessme
                   <div className="text-[11px] text-muted-foreground mt-0.5">No assessment on record</div>
                 )}
               </div>
-              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${sl.cls}`}>{sl.text}</span>
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${sl.cls}`}>{sl.text}</span>
             </div>
           );
         })}
