@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Save, Trash2, Download, Loader2, Upload, X, CreditCard, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Save, Trash2, Download, Loader2, Upload, X, CreditCard, AlertTriangle, TrendingUp, Users } from 'lucide-react';
+import BulkImportModal from '@/components/BulkImportModal';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
@@ -94,6 +95,7 @@ export default function Settings() {
   });
   const [saving, setSaving]       = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
   const [showDeleteOrg, setShowDeleteOrg] = useState(false);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoPreview, setLogoPreview] = useState(null);
@@ -477,6 +479,17 @@ export default function Settings() {
         </p>
       </section>
 
+      {/* Bulk Import */}
+      <section className="bg-card border border-border rounded-xl p-5 space-y-3">
+        <h2 className="text-base font-semibold">Bulk Import Employees</h2>
+        <p className="text-sm text-muted-foreground">
+          Import multiple employees at once from a CSV file. Download the template, fill it in with your team and employee data, then upload it to create all profiles automatically.
+        </p>
+        <Button variant="outline" onClick={() => setShowBulkImport(true)}>
+          <Users className="w-4 h-4 mr-1.5" /> Import Employees from CSV
+        </Button>
+      </section>
+
       {/* Data Export */}
       <section className="bg-card border border-border rounded-xl p-5 space-y-3">
         <h2 className="text-base font-semibold">Data Export</h2>
@@ -503,6 +516,14 @@ export default function Settings() {
           <Trash2 className="w-4 h-4 mr-1.5" /> Delete Organisation
         </Button>
       </section>
+
+      {showBulkImport && (
+        <BulkImportModal
+          orgId={org.id}
+          onClose={() => setShowBulkImport(false)}
+          onImported={() => setShowBulkImport(false)}
+        />
+      )}
 
       {showDeleteOrg && (
         <DeleteOrgModal
