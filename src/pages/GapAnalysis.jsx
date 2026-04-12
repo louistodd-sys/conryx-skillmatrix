@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { BarChart3, Filter } from 'lucide-react';
+import { BarChart3, Filter, ChevronRight } from 'lucide-react';
+import SkillDrillDown from '@/components/SkillDrillDown';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
 import EmptyState from '@/components/EmptyState';
@@ -21,6 +22,9 @@ export default function GapAnalysis() {
   const [assessments, setAssessments] = useState([]);
   const [reqSkills, setReqSkills]   = useState([]);
   const [loading, setLoading]       = useState(true);
+
+  // Drill-down
+  const [selectedSkillItem, setSelectedSkillItem] = useState(null);
 
   // Filters
   const [filterCategory, setFilterCategory]   = useState('all');
@@ -118,6 +122,11 @@ export default function GapAnalysis() {
 
   // Sort by most critical first
   skillCoverage.sort((a, b) => b.redPercent - a.redPercent);
+
+  // Keep selected skill item in sync if data reloads
+  const resolvedSelectedSkill = selectedSkillItem
+    ? skillCoverage.find(i => i.skill.id === selectedSkillItem.skill.id) || selectedSkillItem
+    : null;
 
   // Individual compliance
   let individualStats = teamMembers.map(m => {
@@ -230,20 +239,26 @@ export default function GapAnalysis() {
           onAction={() => navigate('/teams')}
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className={`grid grid-cols-1 gap-6 ${resolvedSelectedSkill ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
 
           {/* Skill Coverage */}
           <div className="bg-card border border-border rounded-xl">
             <div className="px-5 py-4 border-b border-border">
               <h2 className="text-base font-semibold">Skill Coverage</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Required skills — sorted by most critical first</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Click a skill to drill down</p>
             </div>
             {skillCoverage.length === 0 ? (
               <p className="p-5 text-sm text-muted-foreground text-center">No skills match the current filters.</p>
             ) : (
               <div className="divide-y divide-border">
                 {skillCoverage.map(item => (
-                  <div key={item.skill.id} className="px-5 py-3">
+                  <button
+                    key={item.skill.id}
+                    onClick={() => setSelectedSkillItem(resolvedSelectedSkill?.skill.id === item.skill.id ? null : item)}
+                    className={`w-full text-left px-5 py-3 hover:bg-muted/40 transition-colors ${
+                      resolvedSelectedSkill?.skill.id === item.skill.id ? 'bg-primary/5 border-l-2 border-primary' : ''
+                    }`}
+                  >
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2 min-w-0">
                         {item.category && (
@@ -251,13 +266,12 @@ export default function GapAnalysis() {
                         )}
                         <span className="text-sm font-medium truncate">{item.skill.name}</span>
                       </div>
-                      <span className="text-xs text-muted-foreground shrink-0 ml-2">
-                        {item.green}/{item.total} current
-                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                        <span className="text-xs text-muted-foreground">{item.green}/{item.total}</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+                      </div>
                     </div>
                     <RAGBar green={item.green} amber={item.amber} red={item.red} grey={item.grey} showLabels />
-
-                    {/* Proficiency breakdown for levelled skills */}
                     {item.skill.scale_type === 'levelled' && item.total > 0 && (
                       <div className="mt-2 flex gap-2 flex-wrap">
                         {[0, 1, 2, 3, 4].map(level => {
@@ -269,14 +283,23 @@ export default function GapAnalysis() {
                             </span>
                           );
                         })}
-                        {Object.values(item.profCounts).every(v => v === 0) && item.grey > 0 && null}
                       </div>
                     )}
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
           </div>
+
+          {/* Skill Drill-Down panel */}
+          {resolvedSelectedSkill && (
+            <SkillDrillDown
+              skillItem={resolvedSelectedSkill}
+              teamMembers={teamMembers}
+              currentAssessments={currentAssessments}
+              onClose={() => setSelectedSkillItem(null)}
+            />
+          )}
 
           {/* Individual Status */}
           <div className="bg-card border border-border rounded-xl">
