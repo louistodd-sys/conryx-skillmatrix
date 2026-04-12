@@ -318,7 +318,7 @@ export default function GapAnalysis() {
                 {individualStats.map(m => (
                   <Link
                     key={m.user_id}
-                    to={`/users/${m.user_id}`}
+                    to={`/people`}
                     className="flex items-center gap-3 px-5 py-3 hover:bg-muted/30 transition-colors"
                   >
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold shrink-0">
