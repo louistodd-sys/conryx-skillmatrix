@@ -23,19 +23,31 @@ export default function AssessmentModal({ userId, userName, skill, existingAsses
     e.preventDefault();
     setSaving(true);
 
-    const assessment = await base44.entities.SkillAssessment.create({
-      organisation_id: orgId,
-      user_id: userId,
-      user_name: userName,
-      skill_id: skill.id,
-      skill_name: skill.name,
-      proficiency_level: form.proficiency_level,
-      assessed_date: form.assessed_date,
-      expiry_date: form.expiry_date || null,
-      notes: form.notes || null,
-      assessed_by_user_id: user?.id,
-      assessed_by_name: form.assessed_by_name || user?.full_name,
-    });
+    let assessment;
+    if (existingAssessment) {
+      assessment = await base44.entities.SkillAssessment.update(existingAssessment.id, {
+        proficiency_level: form.proficiency_level,
+        assessed_date: form.assessed_date,
+        expiry_date: form.expiry_date || null,
+        notes: form.notes || null,
+        assessed_by_user_id: user?.id,
+        assessed_by_name: form.assessed_by_name || user?.full_name,
+      });
+    } else {
+      assessment = await base44.entities.SkillAssessment.create({
+        organisation_id: orgId,
+        user_id: userId,
+        user_name: userName,
+        skill_id: skill.id,
+        skill_name: skill.name,
+        proficiency_level: form.proficiency_level,
+        assessed_date: form.assessed_date,
+        expiry_date: form.expiry_date || null,
+        notes: form.notes || null,
+        assessed_by_user_id: user?.id,
+        assessed_by_name: form.assessed_by_name || user?.full_name,
+      });
+    }
 
     // Write audit log entry for every assessment
     await base44.entities.AuditLogEntry.create({
