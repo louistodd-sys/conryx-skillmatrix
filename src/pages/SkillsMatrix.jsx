@@ -628,7 +628,7 @@ export default function SkillsMatrix() {
                     {member.user_name || 'Unknown'}
                   </p>
                   {member.is_managed_member && (
-                    <span className="text-[10px] text-muted-foreground">Managed</span>
+                    <span className="text-xs text-muted-foreground">Managed</span>
                   )}
                 </div>
                 <div className="flex gap-1.5">
@@ -681,7 +681,7 @@ export default function SkillsMatrix() {
                             >
                               {sym}
                             </div>
-                            <span className="text-[9px] text-muted-foreground max-w-[44px] text-center leading-tight line-clamp-2">
+                            <span className="text-[11px] text-muted-foreground max-w-[44px] text-center leading-tight line-clamp-2">
                               {skill.name}
                             </span>
                           </button>

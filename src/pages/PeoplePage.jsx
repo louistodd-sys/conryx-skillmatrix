@@ -63,7 +63,7 @@ function PersonSkillTable({ groupedSkills, currentAssessments, reqSkillIds, reqS
                 <td colSpan={7} className="px-4 py-1.5">
                   <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.colour || '#6B7280' }} />
-                    <span className="font-semibold text-foreground uppercase tracking-wide text-[10px]">{cat.name}</span>
+                    <span className="font-semibold text-foreground uppercase tracking-wide text-xs">{cat.name}</span>
                   </span>
                 </td>
               </tr>
@@ -79,7 +79,7 @@ function PersonSkillTable({ groupedSkills, currentAssessments, reqSkillIds, reqS
                     <td className="px-3 py-2">
                       <span className="font-medium text-foreground">{skill.name}</span>
                       {isRequired && (
-                        <Badge variant="outline" className="ml-1.5 text-[9px] px-1 py-0">Required</Badge>
+                        <Badge variant="outline" className="ml-1.5 text-[11px] px-1 py-0">Required</Badge>
                       )}
                     </td>
                     <td className="px-3 py-2 hidden sm:table-cell">
@@ -377,35 +377,35 @@ export default function PeoplePage() {
                       >
                         {person.name}
                       </Link>
-                      <Badge variant="outline" className={`text-[9px] px-1.5 ${person.isManaged ? 'text-muted-foreground' : 'text-primary border-primary/30'}`}>
+                      <Badge variant="outline" className={`text-[11px] px-1.5 ${person.isManaged ? 'text-muted-foreground' : 'text-primary border-primary/30'}`}>
                         {person.isManaged ? 'Managed' : 'App User'}
                       </Badge>
                       {personTeamNames.map(tn => (
-                        <Badge key={tn} variant="secondary" className="text-[9px] px-1.5">{tn}</Badge>
+                        <Badge key={tn} variant="secondary" className="text-[11px] px-1.5">{tn}</Badge>
                       ))}
                     </div>
                     {/* Gap / expiring chips */}
                     <div className="flex gap-2 mt-1 flex-wrap">
                       {person.red > 0 && (
-                        <span className="inline-flex items-center gap-0.5 text-[10px] text-red-700 bg-red-50 border border-red-200 rounded-full px-2 py-0.5">
+                        <span className="inline-flex items-center gap-0.5 text-xs text-red-700 bg-red-50 border border-red-200 rounded-full px-2 py-0.5">
                           <XCircle className="w-2.5 h-2.5" />
                           {person.red} gap{person.red !== 1 ? 's' : ''}
                         </span>
                       )}
                       {person.amber > 0 && (
-                        <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
+                        <span className="inline-flex items-center gap-0.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
                           <Clock className="w-2.5 h-2.5" />
                           {person.amber} expiring
                         </span>
                       )}
                       {person.green > 0 && person.red === 0 && person.amber === 0 && (
-                        <span className="inline-flex items-center gap-0.5 text-[10px] text-green-700 bg-green-50 border border-green-200 rounded-full px-2 py-0.5">
+                        <span className="inline-flex items-center gap-0.5 text-xs text-green-700 bg-green-50 border border-green-200 rounded-full px-2 py-0.5">
                           <CheckCircle2 className="w-2.5 h-2.5" />
                           Fully compliant
                         </span>
                       )}
                       {person.compliance === null && (
-                        <span className="text-[10px] text-muted-foreground">No required skills</span>
+                        <span className="text-xs text-muted-foreground">No required skills</span>
                       )}
                     </div>
                   </div>
@@ -419,7 +419,7 @@ export default function PeoplePage() {
                     ) : (
                       <span className="text-xs text-muted-foreground">N/A</span>
                     )}
-                    <p className="text-[10px] text-muted-foreground">compliance</p>
+                    <p className="text-xs text-muted-foreground">compliance</p>
                   </div>
 
                   {/* Profile link */}

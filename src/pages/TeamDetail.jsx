@@ -242,7 +242,7 @@ export default function TeamDetail() {
                     <p className="text-xs text-muted-foreground">
                       {m.user_email || memberUser?.email}
                       {m.is_managed_member && (
-                        <span className="ml-2 text-[10px] bg-blue-100 text-blue-700 rounded px-1 py-0.5">Managed</span>
+                        <span className="ml-2 text-xs bg-blue-100 text-blue-700 rounded px-1 py-0.5">Managed</span>
                       )}
                     </p>
                   </div>

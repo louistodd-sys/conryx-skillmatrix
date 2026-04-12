@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Users, BookOpen, ClipboardCheck, AlertTriangle, TrendingUp, Clock,
-  ChevronRight, CheckCircle2, Circle, X,
+  ChevronRight, CheckCircle2, Circle, X, ArrowRight,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
@@ -11,92 +11,121 @@ import RAGBar from '@/components/RAGBar';
 import RAGBadge from '@/components/RAGBadge';
 import EmptyState from '@/components/EmptyState';
 import { getRAGStatus } from '@/lib/ragUtils';
-import { parseISO, differenceInDays, startOfWeek, endOfWeek, endOfMonth, isAfter, isBefore, isWithinInterval } from 'date-fns';
+import { parseISO, differenceInDays, endOfWeek, endOfMonth, isBefore } from 'date-fns';
 
 // ─── Onboarding Checklist ──────────────────────────────────────────────────
 function OnboardingChecklist({ org, assessmentCount, teamCount, skillCount, onDismiss }) {
   const items = [
-    { label: 'Skills added to library',      done: skillCount > 0 },
-    { label: 'First team created',            done: teamCount > 0 },
-    { label: 'First assessment completed',    done: assessmentCount > 0 },
-    { label: 'Required skills assigned to a team', done: false }, // simplified check
+    { label: 'Skills added to library',           done: skillCount > 0 },
+    { label: 'First team created',                done: teamCount > 0 },
+    { label: 'First assessment completed',        done: assessmentCount > 0 },
+    { label: 'Required skills assigned to a team', done: false },
   ];
-  const allDone = items.every(i => i.done);
+  const doneCount = items.filter(i => i.done).length;
+  const allDone = doneCount === items.length;
   if (allDone) return null;
 
+  const pct = Math.round((doneCount / items.length) * 100);
+
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-blue-900 mb-2">Getting started checklist</p>
-          <ul className="space-y-1.5">
-            {items.map(item => (
-              <li key={item.label} className="flex items-center gap-2 text-sm">
-                {item.done
-                  ? <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-                  : <Circle className="w-4 h-4 text-blue-300 shrink-0" />}
-                <span className={item.done ? 'text-muted-foreground line-through' : 'text-blue-900'}>
-                  {item.label}
-                </span>
-              </li>
-            ))}
-          </ul>
+    <div className="bg-card border border-primary/20 rounded-xl p-5 shadow-card">
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div>
+          <p className="font-jakarta font-700 text-base text-foreground">Getting started</p>
+          <p className="text-sm text-muted-foreground mt-0.5">Complete these steps to set up your organisation</p>
         </div>
-        <button onClick={onDismiss} className="text-blue-400 hover:text-blue-600 shrink-0">
-          <X className="w-4 h-4" />
+        <button
+          onClick={onDismiss}
+          className="p-1 rounded-md hover:bg-muted transition-colors shrink-0"
+          aria-label="Dismiss checklist"
+        >
+          <X className="w-4 h-4 text-muted-foreground" />
         </button>
       </div>
+
+      {/* Progress bar */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs font-semibold text-muted-foreground">{doneCount} of {items.length} complete</span>
+          <span className="text-xs font-bold text-primary">{pct}%</span>
+        </div>
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+          <div
+            className="h-full bg-primary rounded-full transition-all duration-500"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
+
+      <ul className="space-y-2">
+        {items.map(item => (
+          <li key={item.label} className="flex items-center gap-3">
+            {item.done
+              ? <CheckCircle2 className="w-4 h-4 text-rag-green shrink-0" />
+              : <Circle className="w-4 h-4 text-muted-foreground/40 shrink-0" />}
+            <span className={`text-sm ${item.done ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+              {item.label}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
 // ─── Expiry bucket helpers ─────────────────────────────────────────────────
 function bucketExpiries(expiries) {
-  const today = new Date();
-  const weekEnd   = endOfWeek(today, { weekStartsOn: 1 });
-  const monthEnd  = endOfMonth(today);
+  const today    = new Date();
+  const weekEnd  = endOfWeek(today, { weekStartsOn: 1 });
+  const monthEnd = endOfMonth(today);
 
-  const thisWeek  = expiries.filter(e => e.daysLeft >= 0 && isBefore(parseISO(e.expiry_date), weekEnd));
-  const thisMonth = expiries.filter(e => e.daysLeft >= 0 && !isBefore(parseISO(e.expiry_date), weekEnd) && isBefore(parseISO(e.expiry_date), monthEnd));
-  const next30_60 = expiries.filter(e => e.daysLeft > 30 && e.daysLeft <= 60);
-  const next60_90 = expiries.filter(e => e.daysLeft > 60 && e.daysLeft <= 90);
-
-  return { thisWeek, thisMonth, next30_60, next60_90 };
+  return {
+    thisWeek:  expiries.filter(e => e.daysLeft >= 0 && isBefore(parseISO(e.expiry_date), weekEnd)),
+    thisMonth: expiries.filter(e => e.daysLeft >= 0 && !isBefore(parseISO(e.expiry_date), weekEnd) && isBefore(parseISO(e.expiry_date), monthEnd)),
+    next30_60: expiries.filter(e => e.daysLeft > 30 && e.daysLeft <= 60),
+    next60_90: expiries.filter(e => e.daysLeft > 60 && e.daysLeft <= 90),
+  };
 }
+
+const urgencyConfig = {
+  critical: { ring: 'border-red-200',   bg: 'bg-red-50',    header: 'text-red-700',   badge: 'bg-red-100 text-red-700' },
+  high:     { ring: 'border-amber-200', bg: 'bg-amber-50',  header: 'text-amber-700', badge: 'bg-amber-100 text-amber-700' },
+  medium:   { ring: 'border-amber-200', bg: 'bg-amber-50/50',header:'text-amber-600', badge: 'bg-amber-50 text-amber-600' },
+  low:      { ring: 'border-blue-200',  bg: 'bg-blue-50/50',header: 'text-blue-700',  badge: 'bg-blue-100 text-blue-700' },
+};
 
 function ExpiryBucket({ label, items, urgency }) {
   const [open, setOpen] = useState(true);
   if (items.length === 0) return null;
-  const colors = {
-    critical: 'text-red-700 bg-red-50 border-red-200',
-    high:     'text-amber-700 bg-amber-50 border-amber-200',
-    medium:   'text-amber-600 bg-amber-50/60 border-amber-100',
-    low:      'text-blue-700 bg-blue-50 border-blue-100',
-  };
+  const u = urgencyConfig[urgency];
+
   return (
-    <div className={`rounded-lg border ${colors[urgency]} overflow-hidden`}>
+    <div className={`rounded-lg border ${u.ring} ${u.bg} overflow-hidden`}>
       <button
-        className="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold"
+        className={`w-full flex items-center justify-between px-4 py-2.5 ${u.header}`}
         onClick={() => setOpen(o => !o)}
       >
-        <span>{label} ({items.length})</span>
-        <ChevronRight className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-90' : ''}`} />
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold">{label}</span>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${u.badge}`}>{items.length}</span>
+        </div>
+        <ChevronRight className={`w-4 h-4 transition-transform duration-150 ${open ? 'rotate-90' : ''}`} />
       </button>
       {open && (
         <div className="divide-y divide-current/10 border-t border-current/20">
           {items.slice(0, 8).map((exp, i) => (
-            <div key={i} className="flex items-center justify-between px-3 py-2 bg-white/60">
+            <div key={i} className="flex items-center justify-between px-4 py-2.5 bg-white/60 hover:bg-white/80 transition-colors">
               <div>
-                <p className="text-sm font-medium text-foreground">{exp.user_name}</p>
-                <p className="text-xs text-muted-foreground">{exp.skill_name} — {exp.team_name || ''}</p>
+                <p className="text-sm font-semibold text-foreground">{exp.user_name}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{exp.skill_name}{exp.team_name ? ` · ${exp.team_name}` : ''}</p>
               </div>
-              <span className="text-xs font-mono text-muted-foreground shrink-0 ml-2">
+              <span className={`text-xs font-mono font-bold shrink-0 ml-3 ${exp.daysLeft <= 0 ? 'text-rag-red' : 'text-muted-foreground'}`}>
                 {exp.daysLeft <= 0 ? 'EXPIRED' : `${exp.daysLeft}d`}
               </span>
             </div>
           ))}
           {items.length > 8 && (
-            <p className="px-3 py-1.5 text-xs text-muted-foreground text-center bg-white/40">
+            <p className="px-4 py-2 text-xs text-muted-foreground text-center bg-white/40 font-medium">
               +{items.length - 8} more
             </p>
           )}
@@ -106,6 +135,34 @@ function ExpiryBucket({ label, items, urgency }) {
   );
 }
 
+// ─── Recent Activity item ──────────────────────────────────────────────────
+function ActivityItem({ a }) {
+  const initials = (a.assessed_by_name || 'S')
+    .split(' ')
+    .map(n => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
+  return (
+    <div className="flex items-center gap-3 px-5 py-3 hover:bg-muted/30 transition-colors">
+      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold shrink-0">
+        {initials}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-foreground leading-snug">
+          <span className="font-semibold">{a.assessed_by_name || 'System'}</span>
+          <span className="text-muted-foreground"> assessed </span>
+          <span className="font-semibold">{a.user_name}</span>
+        </p>
+        <p className="text-xs text-muted-foreground mt-0.5 truncate">{a.skill_name}</p>
+      </div>
+      <span className="text-xs text-muted-foreground shrink-0 tabular-nums">{a.assessed_date}</span>
+    </div>
+  );
+}
+
+// ─── Dashboard ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { org, user } = useOrganisation();
   const [data, setData] = useState(null);
@@ -131,18 +188,15 @@ export default function Dashboard() {
       base44.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
     ]);
 
-    // Scope teams for managers
     const visibleTeams = isManager
       ? teams.filter(t => t.manager_ids?.includes(user.id))
       : teams;
 
-    // Current assessment map
     const currentAssessments = {};
     [...assessments]
       .sort((a, b) => (a.assessed_date || '').localeCompare(b.assessed_date || ''))
       .forEach(a => { currentAssessments[`${a.user_id}-${a.skill_id}`] = a; });
 
-    // Expiry analysis — scoped to visible teams
     const today = new Date();
     let expired = 0;
     const allUpcomingExpiries = [];
@@ -151,7 +205,6 @@ export default function Dashboard() {
 
     Object.values(currentAssessments).forEach(a => {
       if (!a.expiry_date) return;
-      // Scope to visible teams
       const memberTeams = teamMembers
         .filter(m => m.user_id === a.user_id && visibleTeamIds.has(m.team_id))
         .map(m => teamById[m.team_id]?.name)
@@ -161,17 +214,12 @@ export default function Dashboard() {
         const daysLeft = differenceInDays(expDate, today);
         if (daysLeft < 0) expired++;
         else if (daysLeft <= 90) {
-          allUpcomingExpiries.push({
-            ...a,
-            daysLeft,
-            team_name: memberTeams[0] || '',
-          });
+          allUpcomingExpiries.push({ ...a, daysLeft, team_name: memberTeams[0] || '' });
         }
       }
     });
     allUpcomingExpiries.sort((a, b) => a.daysLeft - b.daysLeft);
 
-    // Team compliance
     const teamStats = visibleTeams.map(team => {
       const members = teamMembers.filter(m => m.team_id === team.id);
       const reqSkills = teamReqSkills.filter(r => r.team_id === team.id && r.is_required);
@@ -196,7 +244,6 @@ export default function Dashboard() {
       };
     });
 
-    // Org-wide compliance (admin only)
     let totalRequired = 0, totalGreen = 0;
     if (!isManager) {
       teamReqSkills.filter(r => r.is_required).forEach(req => {
@@ -210,7 +257,6 @@ export default function Dashboard() {
       });
     }
 
-    // Recent assessments (last 8, newest first)
     const recentAssessments = [...assessments]
       .sort((a, b) => (b.assessed_date || '').localeCompare(a.assessed_date || ''))
       .slice(0, 8);
@@ -238,8 +284,14 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />)}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-28 rounded-xl bg-muted animate-pulse" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="h-64 rounded-xl bg-muted animate-pulse" />
+          <div className="h-64 rounded-xl bg-muted animate-pulse" />
         </div>
       </div>
     );
@@ -250,7 +302,7 @@ export default function Dashboard() {
       <EmptyState
         icon={TrendingUp}
         title="Welcome to SkillsMatrix"
-        description="Set up your organisation to get started."
+        description="Set up your organisation to start tracking workforce skills and compliance."
         actionLabel="Set Up Organisation"
         onAction={() => window.location.href = '/onboarding'}
       />
@@ -259,13 +311,14 @@ export default function Dashboard() {
 
   const expiryBuckets = bucketExpiries(data.expiries);
   const hasExpiries = data.expiries.length > 0;
+  const isAdmin = user?.role === 'admin';
 
   return (
     <div className="space-y-6">
+      {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          {user?.role === 'manager' ? 'Your team overview' : `${org.name} skills compliance`}
+        <p className="text-sm text-muted-foreground">
+          {user?.role === 'manager' ? 'Your team overview' : `${org.name} · skills compliance overview`}
         </p>
       </div>
 
@@ -280,13 +333,18 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <MetricCard icon={Users}         label="Active Users"      value={data.userCount} />
-        <MetricCard icon={BookOpen}      label="Skills"            value={data.skillCount} />
-        <MetricCard icon={ClipboardCheck} label="Assessments"      value={data.assessmentCount} />
-        {user?.role === 'admin' && (
-          <MetricCard icon={TrendingUp}  label="Compliance"        value={`${data.compliancePercent}%`} subtext="required skills current" />
+      {/* ── Metrics ─────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+        <MetricCard icon={Users}          label="Active Users"   value={data.userCount} />
+        <MetricCard icon={BookOpen}       label="Skills"         value={data.skillCount} />
+        <MetricCard icon={ClipboardCheck} label="Assessments"    value={data.assessmentCount} />
+        {isAdmin && (
+          <MetricCard
+            icon={TrendingUp}
+            label="Compliance"
+            value={`${data.compliancePercent}%`}
+            subtext="required skills current"
+          />
         )}
         <MetricCard
           icon={AlertTriangle}
@@ -302,33 +360,45 @@ export default function Dashboard() {
         />
       </div>
 
+      {/* ── Team Health + Expiry Timeline ───────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Team Health */}
-        <div className="bg-card border border-border rounded-xl">
+        <div className="bg-card border border-border rounded-xl shadow-card">
           <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-            <h2 className="text-base font-semibold">Team Health</h2>
-            <Link to="/teams" className="text-xs text-primary hover:underline flex items-center gap-0.5">
-              View all <ChevronRight className="w-3 h-3" />
+            <h2 className="font-jakarta font-700 text-base text-foreground">Team Health</h2>
+            <Link
+              to="/teams"
+              className="text-xs font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+            >
+              View all <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
           <div className="divide-y divide-border">
             {data.teamStats.length === 0 ? (
-              <p className="p-5 text-sm text-muted-foreground text-center">No teams yet</p>
+              <p className="p-6 text-sm text-muted-foreground text-center">No teams yet — create one to get started</p>
             ) : (
               data.teamStats.map(team => (
                 <Link
                   key={team.id}
                   to={`/teams/${team.id}`}
-                  className="flex items-center gap-4 px-5 py-3 hover:bg-muted/40 transition-colors"
+                  className="flex items-center gap-4 px-5 py-3.5 hover:bg-muted/30 transition-colors group"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{team.name}</p>
-                    <p className="text-xs text-muted-foreground">{team.memberCount} members</p>
+                    <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                      {team.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{team.memberCount} {team.memberCount === 1 ? 'member' : 'members'}</p>
                   </div>
                   <div className="w-28 hidden sm:block">
                     <RAGBar green={team.green} amber={team.amber} red={team.red} grey={team.grey} showLabels />
                   </div>
-                  <span className="text-sm font-bold w-10 text-right shrink-0">{team.compliance}%</span>
+                  <span className={`text-sm font-bold w-10 text-right shrink-0 tabular-nums ${
+                    team.compliance >= 80 ? 'text-rag-green' :
+                    team.compliance >= 50 ? 'text-rag-amber' :
+                    'text-rag-red'
+                  }`}>
+                    {team.compliance}%
+                  </span>
                 </Link>
               ))
             )}
@@ -336,14 +406,18 @@ export default function Dashboard() {
         </div>
 
         {/* Expiry Timeline */}
-        <div className="bg-card border border-border rounded-xl">
+        <div className="bg-card border border-border rounded-xl shadow-card">
           <div className="px-5 py-4 border-b border-border">
-            <h2 className="text-base font-semibold">Expiry Timeline</h2>
+            <h2 className="font-jakarta font-700 text-base text-foreground">Expiry Timeline</h2>
             <p className="text-xs text-muted-foreground mt-0.5">Skills expiring in the next 90 days</p>
           </div>
           <div className="p-4 space-y-2">
             {!hasExpiries ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No upcoming expiries</p>
+              <div className="py-8 text-center">
+                <CheckCircle2 className="w-8 h-8 text-rag-green mx-auto mb-2" />
+                <p className="text-sm font-semibold text-foreground">All clear</p>
+                <p className="text-xs text-muted-foreground mt-0.5">No upcoming expiries in the next 90 days</p>
+              </div>
             ) : (
               <>
                 <ExpiryBucket label="This week"    items={expiryBuckets.thisWeek}  urgency="critical" />
@@ -356,22 +430,16 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Activity */}
+      {/* ── Recent Activity ─────────────────────────────────────────────── */}
       {data.recentAssessments.length > 0 && (
-        <div className="bg-card border border-border rounded-xl">
+        <div className="bg-card border border-border rounded-xl shadow-card">
           <div className="px-5 py-4 border-b border-border">
-            <h2 className="text-base font-semibold">Recent Activity</h2>
+            <h2 className="font-jakarta font-700 text-base text-foreground">Recent Activity</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Latest skill assessments recorded</p>
           </div>
           <div className="divide-y divide-border">
             {data.recentAssessments.map((a, i) => (
-              <div key={i} className="px-5 py-3 text-sm">
-                <span className="font-medium">{a.assessed_by_name || 'System'}</span>
-                <span className="text-muted-foreground"> assessed </span>
-                <span className="font-medium">{a.user_name}</span>
-                <span className="text-muted-foreground"> on </span>
-                <span className="font-medium">{a.skill_name}</span>
-                <span className="text-muted-foreground"> — {a.assessed_date}</span>
-              </div>
+              <ActivityItem key={i} a={a} />
             ))}
           </div>
         </div>

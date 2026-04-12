@@ -153,7 +153,7 @@ export default function MyProfile() {
           ].map(({ label, count, color }) => (
             <div key={label} className="text-center">
               <p className={`text-lg font-bold ${color}`}>{count}</p>
-              <p className="text-[10px] text-muted-foreground uppercase">{label}</p>
+              <p className="text-xs text-muted-foreground uppercase">{label}</p>
             </div>
           ))}
         </div>
@@ -177,7 +177,7 @@ export default function MyProfile() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium">{skill.name}</span>
-                      {isRequired && <Badge variant="outline" className="text-[9px]">Required</Badge>}
+                      {isRequired && <Badge variant="outline" className="text-[11px]">Required</Badge>}
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {assessment

@@ -56,9 +56,9 @@ function ComplianceRing({ pct }) {
         <circle cx="22" cy="22" r={r} fill="none" stroke="#e5e7eb" strokeWidth="4" />
         <circle cx="22" cy="22" r={r} fill="none" stroke={color} strokeWidth="4"
           strokeDasharray={`${dash} ${circ}`} strokeDashoffset={circ / 4} strokeLinecap="round" />
-        <text x="22" y="26" textAnchor="middle" fontSize="9" fontWeight="700" fill={color}>{pct}%</text>
+        <text x="22" y="26" textAnchor="middle" fontSize="11" fontWeight="700" fill={color}>{pct}%</text>
       </svg>
-      <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-wide">Compliant</p>
+      <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wide">Compliant</p>
     </div>
   );
 }
@@ -79,7 +79,7 @@ function SkillRow({ ps }) {
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-foreground">{ps.skill.name}</span>
           {ps.isRequired && (
-            <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">Required</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">Required</span>
           )}
         </div>
       </td>
@@ -182,7 +182,7 @@ function PersonCard({ person, personSkills, categories, skills, teamNames }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-foreground text-sm">{person.name}</span>
-            <Badge variant={person.isManaged ? 'secondary' : 'outline'} className="text-[9px] py-0 px-1.5 h-4">
+            <Badge variant={person.isManaged ? 'secondary' : 'outline'} className="text-[11px] py-0 px-1.5 h-4">
               {person.isManaged ? 'Managed' : 'App User'}
             </Badge>
           </div>
@@ -191,7 +191,7 @@ function PersonCard({ person, personSkills, categories, skills, teamNames }) {
               <span className="text-xs text-muted-foreground truncate max-w-xs">{person.email}</span>
             )}
             {teamNames.map(t => (
-              <span key={t} className="text-[10px] text-muted-foreground font-medium px-1.5 py-0.5 rounded bg-muted">{t}</span>
+              <span key={t} className="text-xs text-muted-foreground font-medium px-1.5 py-0.5 rounded bg-muted">{t}</span>
             ))}
           </div>
           <div className="mt-1.5">
@@ -233,12 +233,12 @@ function PersonCard({ person, personSkills, categories, skills, teamNames }) {
                 <thead>
                   <tr className="border-b border-border bg-muted/30">
                     <th className="w-10 pl-4" />
-                    <th className="text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2.5 px-3">Skill</th>
-                    <th className="text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2.5 px-3 w-28">Status</th>
-                    <th className="text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2.5 px-3 w-36">Level</th>
-                    <th className="text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2.5 px-3 w-32 hidden sm:table-cell">Assessed</th>
-                    <th className="text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2.5 px-3 w-40 hidden md:table-cell">Expires</th>
-                    <th className="text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground py-2.5 px-3 pr-4 w-36 hidden lg:table-cell">Assessed By</th>
+                    <th className="text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground py-2.5 px-3">Skill</th>
+                    <th className="text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground py-2.5 px-3 w-28">Status</th>
+                    <th className="text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground py-2.5 px-3 w-36">Level</th>
+                    <th className="text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground py-2.5 px-3 w-32 hidden sm:table-cell">Assessed</th>
+                    <th className="text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground py-2.5 px-3 w-40 hidden md:table-cell">Expires</th>
+                    <th className="text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground py-2.5 px-3 pr-4 w-36 hidden lg:table-cell">Assessed By</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -249,8 +249,8 @@ function PersonCard({ person, personSkills, categories, skills, teamNames }) {
                         <td colSpan={7} className="py-1.5 pl-4 pr-3">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.colour || '#94a3b8' }} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{cat.name}</span>
-                            <span className="text-[10px] text-muted-foreground/60 ml-1">({cat.skills.length})</span>
+                            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{cat.name}</span>
+                            <span className="text-xs text-muted-foreground/60 ml-1">({cat.skills.length})</span>
                           </div>
                         </td>
                       </tr>
@@ -453,7 +453,7 @@ export default function People() {
             </div>
             <div>
               <p className={`text-xl font-bold ${color}`}>{value}</p>
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">{label}</p>
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{label}</p>
             </div>
           </div>
         ))}

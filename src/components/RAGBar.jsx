@@ -2,35 +2,35 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 export default function RAGBar({ green = 0, amber = 0, red = 0, grey = 0, showLabels = false }) {
   const total = green + amber + red + grey;
-  if (total === 0) return <div className="h-3 rounded-full bg-gray-100 w-full" />;
+  if (total === 0) return <div className="h-2 rounded-full bg-muted w-full" />;
 
   const segments = [
-    { value: green, color: 'bg-green-500', label: `Current: ${green}` },
-    { value: amber, color: 'bg-amber-500', label: `Expiring: ${amber}` },
-    { value: red, color: 'bg-red-500', label: `Expired/Missing: ${red}` },
-    { value: grey, color: 'bg-gray-400', label: `Not Assessed: ${grey}` },
+    { value: green, color: 'bg-rag-green', label: `Current: ${green}` },
+    { value: amber, color: 'bg-rag-amber', label: `Expiring: ${amber}` },
+    { value: red,   color: 'bg-rag-red',   label: `Expired/Missing: ${red}` },
+    { value: grey,  color: 'bg-rag-grey',  label: `Not Assessed: ${grey}` },
   ].filter(s => s.value > 0);
 
   return (
     <TooltipProvider>
       <div className="flex items-center gap-2 w-full">
-        <div className="flex h-3 rounded-full overflow-hidden w-full bg-gray-100">
+        <div className="flex h-2 rounded-full overflow-hidden w-full bg-muted gap-px">
           {segments.map((seg, i) => (
             <Tooltip key={i}>
               <TooltipTrigger asChild>
                 <div
-                  className={`${seg.color} transition-all`}
+                  className={`${seg.color} transition-all hover:opacity-90`}
                   style={{ width: `${(seg.value / total) * 100}%` }}
                 />
               </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">{seg.label} ({Math.round((seg.value / total) * 100)}%)</p>
+              <TooltipContent side="top">
+                <p className="text-xs font-medium">{seg.label} ({Math.round((seg.value / total) * 100)}%)</p>
               </TooltipContent>
             </Tooltip>
           ))}
         </div>
         {showLabels && (
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
+          <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap tabular-nums">
             {Math.round((green / total) * 100)}%
           </span>
         )}

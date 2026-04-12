@@ -43,7 +43,7 @@ function ComplianceRing({ pct }) {
           {pct}%
         </text>
       </svg>
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
         Compliance
       </p>
     </div>
@@ -266,7 +266,7 @@ export default function UserProfile() {
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl font-bold text-foreground">{profileUser.full_name}</h1>
               {isManagedMember && (
-                <Badge variant="outline" className="text-[10px] flex items-center gap-1">
+                <Badge variant="outline" className="text-xs flex items-center gap-1">
                   <UserCog className="w-3 h-3" /> Managed
                 </Badge>
               )}
@@ -319,7 +319,7 @@ export default function UserProfile() {
               ].map(({ value, label, color }) => (
                 <div key={label} className="text-center">
                   <p className={`text-lg font-bold ${color}`}>{value}</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">{label}</p>
                 </div>
               ))}
             </div>
@@ -433,7 +433,7 @@ export default function UserProfile() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium">{skill.name}</span>
                         {isRequired && (
-                          <Badge variant="outline" className="text-[9px]">Required</Badge>
+                          <Badge variant="outline" className="text-[11px]">Required</Badge>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">

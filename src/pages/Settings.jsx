@@ -423,7 +423,7 @@ export default function Settings() {
                     </span>
                   </div>
                   {unlimited ? (
-                    <p className="text-[10px] text-muted-foreground">Unlimited</p>
+                    <p className="text-xs text-muted-foreground">Unlimited</p>
                   ) : (
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                       <div
@@ -433,7 +433,7 @@ export default function Settings() {
                     </div>
                   )}
                   {atLimit && (
-                    <p className="text-[10px] text-red-600 font-medium mt-1">Limit reached — upgrade to add more</p>
+                    <p className="text-xs text-red-600 font-medium mt-1">Limit reached — upgrade to add more</p>
                   )}
                 </div>
               );

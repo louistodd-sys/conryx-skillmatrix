@@ -278,7 +278,7 @@ export default function GapAnalysis() {
                           const count = item.profCounts[level] || 0;
                           if (count === 0) return null;
                           return (
-                            <span key={level} className="text-[10px] bg-muted rounded px-1.5 py-0.5 text-muted-foreground">
+                            <span key={level} className="text-xs bg-muted rounded px-1.5 py-0.5 text-muted-foreground">
                               L{level}: {count}
                             </span>
                           );
@@ -332,9 +332,9 @@ export default function GapAnalysis() {
                         )}
                       </div>
                       <div className="flex gap-2 mt-0.5">
-                        {m.green > 0 && <span className="text-[10px] text-green-700">{m.green} current</span>}
-                        {m.amber > 0 && <span className="text-[10px] text-amber-700">{m.amber} expiring</span>}
-                        {(m.red + m.grey) > 0 && <span className="text-[10px] text-red-700">{m.red + m.grey} missing/expired</span>}
+                        {m.green > 0 && <span className="text-xs text-green-700">{m.green} current</span>}
+                        {m.amber > 0 && <span className="text-xs text-amber-700">{m.amber} expiring</span>}
+                        {(m.red + m.grey) > 0 && <span className="text-xs text-red-700">{m.red + m.grey} missing/expired</span>}
                       </div>
                     </div>
                     <div className="text-right shrink-0">

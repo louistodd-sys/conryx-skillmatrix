@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,103 +7,125 @@
 @layer base {
   :root {
     --font-inter: 'Inter', sans-serif;
+    --font-jakarta: 'Plus Jakarta Sans', sans-serif;
 
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
-    --radius: 0.5rem;
+    /* ── Brand core ───────────────────────────────────────────── */
+    --brand-primary: 224 64% 28%;        /* Deep Navy  #1A3A7A */
+    --brand-accent:  197 80% 38%;        /* Precision Teal #0D87A8 */
 
-    --chart-1: 221 83% 53%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 0 72% 51%;
-    --chart-5: 215 16% 47%;
+    /* ── Semantic tokens (light mode) ────────────────────────── */
+    --background:          220 20% 97%;  /* Cool Shell #F4F6FA */
+    --foreground:          222 39% 12%;  /* Near Black  #111827 */
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 215 16% 47%;
-    --sidebar-primary: 221 83% 53%;
-    --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 221 83% 53%;
+    --card:                0 0% 100%;
+    --card-foreground:     222 39% 12%;
 
-    --rag-green: 142 71% 45%;
-    --rag-green-light: 138 76% 97%;
-    --rag-green-text: 143 64% 24%;
-    --rag-amber: 38 92% 50%;
-    --rag-amber-light: 48 96% 89%;
-    --rag-amber-text: 28 80% 29%;
-    --rag-red: 0 72% 51%;
-    --rag-red-light: 0 86% 97%;
-    --rag-red-text: 0 63% 31%;
-    --rag-grey: 220 9% 46%;
-    --rag-grey-light: 220 14% 96%;
-    --rag-grey-text: 221 39% 11%;
+    --popover:             0 0% 100%;
+    --popover-foreground:  222 39% 12%;
+
+    --primary:             224 64% 28%;  /* Deep Navy */
+    --primary-foreground:  0 0% 100%;
+
+    --secondary:           220 20% 93%;
+    --secondary-foreground: 222 39% 18%;
+
+    --muted:               220 20% 94%;
+    --muted-foreground:    215 25% 44%;  /* Slate — 5.2:1 contrast ✓ WCAG AA */
+
+    --accent:              197 40% 92%;
+    --accent-foreground:   197 80% 25%;
+
+    --destructive:         0 72% 46%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border:              220 20% 88%;
+    --input:               220 20% 88%;
+    --ring:                197 80% 38%;  /* Teal ring — brand accent */
+    --radius:              0.75rem;      /* 12px — softer, more premium */
+
+    /* ── Chart palette ───────────────────────────────────────── */
+    --chart-1: 224 64% 28%;   /* Navy */
+    --chart-2: 152 69% 31%;   /* Emerald */
+    --chart-3: 38 92% 50%;    /* Amber */
+    --chart-4: 0 72% 46%;     /* Crimson */
+    --chart-5: 197 80% 38%;   /* Teal */
+
+    /* ── Sidebar (dark navy) ──────────────────────────────────── */
+    --sidebar-background:         222 47% 11%;   /* Midnight Navy #0F1C35 */
+    --sidebar-foreground:         215 25% 72%;   /* Soft white-blue */
+    --sidebar-primary:            197 80% 38%;   /* Teal — active highlight */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent:             222 40% 16%;   /* Slightly lighter navy */
+    --sidebar-accent-foreground:  0 0% 100%;
+    --sidebar-border:             222 40% 18%;
+    --sidebar-ring:               197 80% 38%;
+
+    /* ── RAG status colours ───────────────────────────────────── */
+    --rag-green:       152 69% 31%;   /* Deeper Emerald */
+    --rag-green-light: 152 60% 95%;
+    --rag-green-text:  152 69% 22%;
+
+    --rag-amber:       38 92% 45%;
+    --rag-amber-light: 48 96% 92%;
+    --rag-amber-text:  28 80% 28%;
+
+    --rag-red:         0 72% 46%;
+    --rag-red-light:   0 86% 97%;
+    --rag-red-text:    0 63% 30%;
+
+    --rag-grey:        215 14% 58%;   /* Slate — readable */
+    --rag-grey-light:  215 20% 95%;
+    --rag-grey-text:   215 25% 30%;
   }
 
   .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 217 33% 17%;
+    --background:          222 47% 6%;
+    --foreground:          210 40% 98%;
+    --card:                222 47% 9%;
+    --card-foreground:     210 40% 98%;
+    --popover:             222 47% 9%;
+    --popover-foreground:  210 40% 98%;
+    --primary:             197 80% 50%;
+    --primary-foreground:  222 47% 8%;
+    --secondary:           217 33% 17%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
+    --muted:               217 33% 17%;
+    --muted-foreground:    215 20% 68%;
+    --accent:              217 33% 17%;
+    --accent-foreground:   210 40% 98%;
+    --destructive:         0 63% 40%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 224 76% 48%;
-    --chart-1: 221 83% 53%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 0 72% 51%;
-    --chart-5: 215 16% 47%;
-    --sidebar-background: 222 47% 6%;
-    --sidebar-foreground: 215 20% 65%;
-    --sidebar-primary: 224 76% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 12%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 221 83% 53%;
+    --border:              217 33% 20%;
+    --input:               217 33% 20%;
+    --ring:                197 80% 50%;
 
-    --rag-green: 142 71% 45%;
-    --rag-green-light: 143 64% 12%;
-    --rag-green-text: 142 71% 65%;
-    --rag-amber: 38 92% 50%;
+    --chart-1: 197 80% 55%;
+    --chart-2: 152 69% 45%;
+    --chart-3: 38 92% 55%;
+    --chart-4: 0 72% 55%;
+    --chart-5: 224 64% 65%;
+
+    --sidebar-background:         222 47% 6%;
+    --sidebar-foreground:         215 20% 65%;
+    --sidebar-primary:            197 80% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent:             217 33% 12%;
+    --sidebar-accent-foreground:  210 40% 98%;
+    --sidebar-border:             217 33% 17%;
+    --sidebar-ring:               197 80% 50%;
+
+    --rag-green:       152 69% 50%;
+    --rag-green-light: 152 60% 12%;
+    --rag-green-text:  152 69% 70%;
+    --rag-amber:       38 92% 55%;
     --rag-amber-light: 28 80% 12%;
-    --rag-amber-text: 38 92% 65%;
-    --rag-red: 0 72% 51%;
-    --rag-red-light: 0 63% 12%;
-    --rag-red-text: 0 72% 65%;
-    --rag-grey: 220 9% 46%;
-    --rag-grey-light: 220 14% 14%;
-    --rag-grey-text: 220 9% 65%;
+    --rag-amber-text:  38 92% 70%;
+    --rag-red:         0 72% 55%;
+    --rag-red-light:   0 63% 12%;
+    --rag-red-text:    0 72% 72%;
+    --rag-grey:        215 14% 60%;
+    --rag-grey-light:  215 20% 14%;
+    --rag-grey-text:   215 14% 75%;
   }
 }
 
@@ -112,6 +134,47 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-inter;
+    @apply bg-background text-foreground;
+    font-family: var(--font-inter);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Enforce minimum readable font size */
+  :root {
+    font-size: 14px;
+  }
+
+  /* Brand heading font */
+  h1, h2, h3 {
+    font-family: var(--font-jakarta);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  h4, h5, h6 {
+    font-family: var(--font-jakarta);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+}
+
+@layer utilities {
+  /* Brand font utilities */
+  .font-jakarta {
+    font-family: var(--font-jakarta);
+  }
+
+  /* Smooth page transitions */
+  .page-enter {
+    animation: page-in 0.18s ease-out;
+  }
+
+  @keyframes page-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 }
