@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollText, Search, ChevronDown, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
@@ -174,9 +174,8 @@ export default function AuditLog() {
                     const hasDetail  = detail && Object.keys(detail).length > 0;
 
                     return (
-                      <>
+                      <React.Fragment key={log.id}>
                         <tr
-                          key={log.id}
                           className={`hover:bg-muted/30 transition-colors ${hasDetail ? 'cursor-pointer' : ''}`}
                           onClick={() => hasDetail && setExpandedRow(isExpanded ? null : log.id)}
                         >
@@ -203,7 +202,7 @@ export default function AuditLog() {
                           <td className="px-4 py-3 text-sm text-muted-foreground">{log.target_display || '—'}</td>
                         </tr>
                         {isExpanded && hasDetail && (
-                          <tr key={`${log.id}-detail`} className="bg-muted/20">
+                          <tr className="bg-muted/20">
                             <td />
                             <td colSpan={4} className="px-4 pb-3 pt-1">
                               <div className="rounded-md bg-muted border border-border p-3">
@@ -222,7 +221,7 @@ export default function AuditLog() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </React.Fragment>
                     );
                   })}
                 </tbody>
