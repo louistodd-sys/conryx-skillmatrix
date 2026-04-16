@@ -5,6 +5,8 @@ import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import useTierCheck from '@/hooks/useTierCheck';
+import UpgradePromptModal from '@/components/UpgradePromptModal';
 
 /**
  * Creates a managed Member record (no app login required).
@@ -13,6 +15,7 @@ import { Label } from '@/components/ui/label';
  */
 export default function AddEmployeeModal({ orgId, teams, preselectedTeamId, onClose, onSaved }) {
   const { user } = useOrganisation();
+  const { checkLimit, upgradePrompt, clearPrompt } = useTierCheck();
   const [form, setForm] = useState({
     first_name: '',
     last_name: '',
@@ -34,6 +37,11 @@ export default function AddEmployeeModal({ orgId, teams, preselectedTeamId, onCl
       return;
     }
     setError('');
+
+    // Check tier limit before proceeding
+    const allowed = await checkLimit('employee');
+    if (!allowed) return;
+
     setSaving(true);
 
     try {
@@ -84,6 +92,8 @@ export default function AddEmployeeModal({ orgId, teams, preselectedTeamId, onCl
   };
 
   return (
+    <>
+    {upgradePrompt && <UpgradePromptModal prompt={upgradePrompt} onClose={clearPrompt} />}
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div className="bg-card rounded-xl border border-border shadow-xl w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
@@ -179,5 +189,6 @@ export default function AddEmployeeModal({ orgId, teams, preselectedTeamId, onCl
         </form>
       </div>
     </div>
+    </>
   );
 }
