@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   Users2, Search, ChevronDown, ChevronUp, ExternalLink,
   AlertTriangle, Clock, CheckCircle2, MinusCircle, Shield,
-  TrendingDown, User, CalendarDays, ClipboardCheck,
+  TrendingDown,
 } from 'lucide-react';
 import { differenceInDays, parseISO, isValid, format } from 'date-fns';
 import { base44 } from '@/api/base44Client';
@@ -12,7 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/EmptyState';
-import { getRAGStatus, getProficiencyLabel, getRAGLabel } from '@/lib/ragUtils';
+import { getRAGStatus, getProficiencyLabel } from '@/lib/ragUtils';
+import { getLatestAssessments } from '@/utils/assessmentUtils';
 
 // ─── RAG config ─────────────────────────────────────────────────────────────
 const RAG = {
@@ -338,14 +339,7 @@ export default function People() {
     return Object.values(map);
   }, [teamMembers, appUsers]);
 
-  const assessmentMap = useMemo(() => {
-    const m = {};
-    for (const a of assessments) {
-      const key = `${a.user_id}-${a.skill_id}`;
-      if (!m[key] || a.assessed_date > m[key].assessed_date) m[key] = a;
-    }
-    return m;
-  }, [assessments]);
+  const assessmentMap = useMemo(() => getLatestAssessments(assessments), [assessments]);
 
   const reqMap = useMemo(() => {
     const m = {};

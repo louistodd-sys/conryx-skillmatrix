@@ -5,9 +5,12 @@ import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import useTierCheck from '@/hooks/useTierCheck';
+import UpgradePromptModal from '@/components/UpgradePromptModal';
 
 export default function InviteUserModal({ orgId, teams, onClose, onSaved }) {
   const { user } = useOrganisation();
+  const { checkLimit, upgradePrompt, clearPrompt } = useTierCheck();
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('viewer');
   const [selectedTeams, setSelectedTeams] = useState([]);
@@ -17,6 +20,14 @@ export default function InviteUserModal({ orgId, teams, onClose, onSaved }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Check tier limit for manager or admin seat before inviting
+    if (role === 'manager' || role === 'admin') {
+      const limitType = role === 'admin' ? 'admin_seat' : 'manager_seat';
+      const allowed = await checkLimit(limitType);
+      if (!allowed) return;
+    }
+
     setSending(true);
 
     // Create invitation record
@@ -43,6 +54,8 @@ export default function InviteUserModal({ orgId, teams, onClose, onSaved }) {
   };
 
   return (
+    <>
+    {upgradePrompt && <UpgradePromptModal prompt={upgradePrompt} onClose={clearPrompt} />}
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="bg-card rounded-xl border border-border shadow-xl w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
@@ -85,5 +98,6 @@ export default function InviteUserModal({ orgId, teams, onClose, onSaved }) {
         </form>
       </div>
     </div>
+    </>
   );
 }

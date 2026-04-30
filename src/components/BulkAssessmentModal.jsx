@@ -5,7 +5,6 @@ import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getProficiencyLabel } from '@/lib/ragUtils';
 
 /**
  * Bulk assessment: assess one skill across all team members at once.
@@ -17,6 +16,7 @@ export default function BulkAssessmentModal({ skill, members, orgId, onClose, on
 
   const [assessedDate, setAssessedDate] = useState(today);
   const [expiryDate, setExpiryDate] = useState('');
+  const [dateError, setDateError] = useState('');
   const [rows, setRows] = useState(() =>
     members.map(m => ({
       userId: m.user_id,
@@ -43,6 +43,13 @@ export default function BulkAssessmentModal({ skill, members, orgId, onClose, on
   };
 
   const handleSave = async () => {
+    // Validate: expiry date must be after assessed date
+    if (expiryDate && expiryDate < assessedDate) {
+      setDateError('Expiry date must be after the assessed date.');
+      return;
+    }
+    setDateError('');
+
     setSaving(true);
     const included = rows.filter(r => r.include);
     await Promise.all(included.map(r =>
@@ -103,7 +110,7 @@ export default function BulkAssessmentModal({ skill, members, orgId, onClose, on
               <Input
                 type="date"
                 value={assessedDate}
-                onChange={e => setAssessedDate(e.target.value)}
+                onChange={e => { setAssessedDate(e.target.value); setDateError(''); }}
                 className="mt-1 w-40"
               />
             </div>
@@ -113,13 +120,14 @@ export default function BulkAssessmentModal({ skill, members, orgId, onClose, on
                 <Input
                   type="date"
                   value={expiryDate}
-                  onChange={e => setExpiryDate(e.target.value)}
+                  onChange={e => { setExpiryDate(e.target.value); setDateError(''); }}
                   required
-                  className="mt-1 w-40"
+                  className={`mt-1 w-40 ${dateError ? 'border-destructive' : ''}`}
                 />
               </div>
             )}
           </div>
+          {dateError && <p className="text-xs text-destructive mt-2">{dateError}</p>}
         </div>
 
         {/* Per-member rows */}

@@ -5,8 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import useTierCheck from '@/hooks/useTierCheck';
+import UpgradePromptModal from '@/components/UpgradePromptModal';
 
 export default function SkillFormModal({ skill, categories, orgId, onClose, onSaved }) {
+  const { checkLimit, upgradePrompt, clearPrompt } = useTierCheck();
   const [form, setForm] = useState({
     name: skill?.name || '',
     description: skill?.description || '',
@@ -19,6 +22,13 @@ export default function SkillFormModal({ skill, categories, orgId, onClose, onSa
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Only check tier limit when creating a new skill (not when editing)
+    if (!skill) {
+      const allowed = await checkLimit('skill');
+      if (!allowed) return;
+    }
+
     setSaving(true);
     if (skill) {
       await base44.entities.Skill.update(skill.id, form);
@@ -31,6 +41,8 @@ export default function SkillFormModal({ skill, categories, orgId, onClose, onSa
   };
 
   return (
+    <>
+    {upgradePrompt && <UpgradePromptModal prompt={upgradePrompt} onClose={clearPrompt} />}
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="bg-card rounded-xl border border-border shadow-xl w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
@@ -98,5 +110,6 @@ export default function SkillFormModal({ skill, categories, orgId, onClose, onSa
         </form>
       </div>
     </div>
+    </>
   );
 }

@@ -8,6 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import AssessmentModal from '@/components/AssessmentModal';
 import BulkAssessmentModal from '@/components/BulkAssessmentModal';
 import { getRAGStatus, getProficiencyLabel, getRAGLabel } from '@/lib/ragUtils';
+import { getLatestAssessments } from '@/utils/assessmentUtils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // ─── Layout constants ──────────────────────────────────────────────────────
@@ -122,10 +123,7 @@ export default function SkillsMatrix() {
   if (loading) return <div className="h-96 rounded-xl bg-muted animate-pulse" />;
 
   // Latest assessment per user+skill
-  const currentAssessments = {};
-  [...assessments]
-    .sort((a, b) => (a.assessed_date || '').localeCompare(b.assessed_date || ''))
-    .forEach(a => { currentAssessments[`${a.user_id}-${a.skill_id}`] = a; });
+  const currentAssessments = getLatestAssessments(assessments);
 
   // Filter + deduplicate members
   let filteredMembers = members;

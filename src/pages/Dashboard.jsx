@@ -2,24 +2,25 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Users, BookOpen, ClipboardCheck, AlertTriangle, TrendingUp, Clock,
-  ChevronRight, CheckCircle2, Circle, X, ArrowRight,
+  CheckCircle2, Circle, X, ArrowRight,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
 import MetricCard from '@/components/MetricCard';
 import RAGBar from '@/components/RAGBar';
-import RAGBadge from '@/components/RAGBadge';
 import EmptyState from '@/components/EmptyState';
 import { getRAGStatus } from '@/lib/ragUtils';
 import { parseISO, differenceInDays, endOfWeek, endOfMonth, isBefore } from 'date-fns';
 
+import { getLatestAssessments } from '@/utils/assessmentUtils';
+
 // ─── Onboarding Checklist ──────────────────────────────────────────────────
-function OnboardingChecklist({ org, assessmentCount, teamCount, skillCount, onDismiss }) {
+function OnboardingChecklist({ org, assessmentCount, teamCount, skillCount, hasRequiredSkills, onDismiss }) {
   const items = [
     { label: 'Skills added to library',           done: skillCount > 0 },
     { label: 'First team created',                done: teamCount > 0 },
     { label: 'First assessment completed',        done: assessmentCount > 0 },
-    { label: 'Required skills assigned to a team', done: false },
+    { label: 'Required skills assigned to a team', done: hasRequiredSkills },
   ];
   const doneCount = items.filter(i => i.done).length;
   const allDone = doneCount === items.length;
@@ -192,10 +193,8 @@ export default function Dashboard() {
       ? teams.filter(t => t.manager_ids?.includes(user.id))
       : teams;
 
-    const currentAssessments = {};
-    [...assessments]
-      .sort((a, b) => (a.assessed_date || '').localeCompare(b.assessed_date || ''))
-      .forEach(a => { currentAssessments[`${a.user_id}-${a.skill_id}`] = a; });
+    const currentAssessments = getLatestAssessments(assessments);
+    const hasRequiredSkills = teamReqSkills.some(r => r.is_required);
 
     const today = new Date();
     let expired = 0;
@@ -272,6 +271,7 @@ export default function Dashboard() {
       teamStats,
       expiries: allUpcomingExpiries,
       recentAssessments,
+      hasRequiredSkills,
     });
     setLoading(false);
   }
@@ -329,6 +329,7 @@ export default function Dashboard() {
           skillCount={data.skillCount}
           teamCount={data.teamCount}
           assessmentCount={data.assessmentCount}
+          hasRequiredSkills={data.hasRequiredSkills}
           onDismiss={handleDismissChecklist}
         />
       )}

@@ -5,7 +5,6 @@ import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import RAGBadge from '@/components/RAGBadge';
 import { getProficiencyLabel } from '@/lib/ragUtils';
 
 export default function AssessmentModal({ userId, userName, skill, existingAssessment, orgId, onClose, onSaved }) {
@@ -18,11 +17,19 @@ export default function AssessmentModal({ userId, userName, skill, existingAsses
     assessed_by_name: existingAssessment?.assessed_by_name || user?.full_name || '',
   });
   const [saving, setSaving] = useState(false);
+  const [dateError, setDateError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
 
+    // Validate: expiry date must be after assessed date
+    if (form.expiry_date && form.expiry_date < form.assessed_date) {
+      setDateError('Expiry date must be after the assessed date.');
+      return;
+    }
+    setDateError('');
+
+    setSaving(true);
     let assessment;
     if (existingAssessment) {
       assessment = await base44.entities.SkillAssessment.update(existingAssessment.id, {
@@ -152,9 +159,10 @@ export default function AssessmentModal({ userId, userName, skill, existingAsses
             <Input
               type="date"
               value={form.expiry_date}
-              onChange={e => setForm({ ...form, expiry_date: e.target.value })}
-              className="mt-1"
+              onChange={e => { setForm({ ...form, expiry_date: e.target.value }); setDateError(''); }}
+              className={`mt-1 ${dateError ? 'border-destructive' : ''}`}
             />
+            {dateError && <p className="text-xs text-destructive mt-1">{dateError}</p>}
           </div>
 
           {/* Assessed By */}

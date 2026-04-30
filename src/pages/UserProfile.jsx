@@ -11,6 +11,7 @@ import AssessmentModal from '@/components/AssessmentModal';
 import DeleteUserModal from '@/components/DeleteUserModal';
 import EditEmployeeModal from '@/components/EditEmployeeModal';
 import { getRAGStatus, getProficiencyLabel } from '@/lib/ragUtils';
+import { getLatestAssessmentsForUser } from '@/utils/assessmentUtils';
 
 // ─── Compliance ring ───────────────────────────────────────────────────────
 function ComplianceRing({ pct }) {
@@ -174,11 +175,11 @@ export default function UserProfile() {
   if (!profileUser) return <p className="text-muted-foreground p-4">Person not found.</p>;
 
   // ── Computed values ────────────────────────────────────────────────────────
-  const currentAssessments = {};
-  const assessmentHistory  = {};
-  const sorted = [...assessments].sort((a, b) => (a.assessed_date || '').localeCompare(b.assessed_date || ''));
-  sorted.forEach(a => {
-    currentAssessments[a.skill_id] = a;
+  const currentAssessments = getLatestAssessmentsForUser(assessments, userId);
+
+  const assessmentHistory = {};
+  const sortedByDate = [...assessments].sort((a, b) => (a.assessed_date || '').localeCompare(b.assessed_date || ''));
+  sortedByDate.forEach(a => {
     if (!assessmentHistory[a.skill_id]) assessmentHistory[a.skill_id] = [];
     assessmentHistory[a.skill_id].push(a);
   });

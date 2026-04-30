@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { X, Plus, Trash2, GripVertical } from 'lucide-react';
+import { X, Plus, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import useTierCheck from '@/hooks/useTierCheck';
+import UpgradePromptModal from '@/components/UpgradePromptModal';
 
 const PRESET_COLOURS = ['#DC2626', '#D97706', '#16A34A', '#2563EB', '#7C3AED', '#DB2777', '#0891B2', '#6B7280'];
 
 export default function CategoryFormModal({ categories, orgId, onClose, onSaved }) {
+  const { checkLimit, upgradePrompt, clearPrompt } = useTierCheck();
   const [items, setItems] = useState(categories.map(c => ({ ...c })));
   const [newName, setNewName] = useState('');
   const [newColour, setNewColour] = useState(PRESET_COLOURS[0]);
@@ -14,6 +17,11 @@ export default function CategoryFormModal({ categories, orgId, onClose, onSaved 
 
   const addCategory = async () => {
     if (!newName.trim()) return;
+
+    // Check tier limit before creating a new category
+    const allowed = await checkLimit('category');
+    if (!allowed) return;
+
     setSaving(true);
     await base44.entities.SkillCategory.create({
       organisation_id: orgId,
@@ -42,6 +50,8 @@ export default function CategoryFormModal({ categories, orgId, onClose, onSaved 
   };
 
   return (
+    <>
+    {upgradePrompt && <UpgradePromptModal prompt={upgradePrompt} onClose={clearPrompt} />}
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="bg-card rounded-xl border border-border shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
@@ -91,5 +101,6 @@ export default function CategoryFormModal({ categories, orgId, onClose, onSaved 
         </div>
       </div>
     </div>
+    </>
   );
 }
