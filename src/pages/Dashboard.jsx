@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Users, BookOpen, ClipboardCheck, AlertTriangle, TrendingUp, Clock,
-  CheckCircle2, Circle, X, ArrowRight,
+  CheckCircle2, Circle, X, ArrowRight, ChevronRight,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
