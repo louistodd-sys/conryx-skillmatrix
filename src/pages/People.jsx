@@ -53,11 +53,11 @@ function ComplianceRing({ pct }) {
   const dash = (pct / 100) * circ;
   return (
     <div className="flex flex-col items-center gap-0.5 w-16 shrink-0">
-      <svg width="44" height="44" viewBox="0 0 44 44">
+      <svg width="44" height="44" viewBox="0 0 44 44" style={{ transform: 'rotate(-90deg)' }}>
         <circle cx="22" cy="22" r={r} fill="none" stroke="#e5e7eb" strokeWidth="4" />
         <circle cx="22" cy="22" r={r} fill="none" stroke={color} strokeWidth="4"
-          strokeDasharray={`${dash} ${circ}`} strokeDashoffset={circ / 4} strokeLinecap="round" />
-        <text x="22" y="26" textAnchor="middle" fontSize="11" fontWeight="700" fill={color}>{pct}%</text>
+          strokeDasharray={`${dash} ${circ - dash}`} strokeLinecap="butt" />
+        <text x="22" y="26" textAnchor="middle" fontSize="11" fontWeight="700" fill={color} style={{ transform: 'rotate(90deg)', transformOrigin: '22px 22px' }}>{pct}%</text>
       </svg>
       <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wide">Compliant</p>
     </div>

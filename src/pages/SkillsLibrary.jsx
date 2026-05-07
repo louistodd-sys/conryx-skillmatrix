@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Archive, RotateCcw, Pencil, Trash2, BookOpen } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
@@ -144,18 +144,25 @@ export default function SkillsLibrary() {
                     <td className="px-4 py-3 text-xs text-muted-foreground capitalize">{skill.scale_type}</td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">{skill.requires_expiry ? 'Yes' : 'No'}</td>
                     <td className="px-4 py-3">
-                      <Badge variant={skill.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                        {skill.status}
-                      </Badge>
+                      <button
+                        onClick={() => handleArchive(skill)}
+                        className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors ${
+                          skill.status === 'active'
+                            ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                            : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
+                        }`}
+                        title={skill.status === 'active' ? 'Click to deactivate' : 'Click to activate'}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${skill.status === 'active' ? 'bg-green-500' : 'bg-gray-400'}`} />
+                        {skill.status === 'active' ? 'Active' : 'Inactive'}
+                      </button>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditingSkill(skill); setShowSkillForm(true); }}>
                           <Pencil className="w-3.5 h-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleArchive(skill)}>
-                          {skill.status === 'active' ? <Archive className="w-3.5 h-3.5" /> : <RotateCcw className="w-3.5 h-3.5" />}
-                        </Button>
+
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(skill)}>
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
