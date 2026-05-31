@@ -30,19 +30,17 @@ import BrcClauses from './pages/brc/BrcClauses';
 import BrcClauseDetail from './pages/brc/BrcClauseDetail';
 import BrcDocuments from './pages/brc/BrcDocuments';
 import BrcSettings from './pages/brc/BrcSettings';
-import {
-  BrcAudits, BrcAuditDetail,
-  BrcNonConformances, BrcNonConformanceDetail,
-  BrcCapas,
-  BrcSuppliers, BrcSupplierDetail,
-  BrcCalibration, BrcCalibrationDetail,
-  BrcComplaints, BrcComplaintDetail,
-  BrcManagementReview,
-  BrcGlassRegister,
-  BrcPestControl,
-  BrcTraining,
-  BrcDocumentDetail,
-} from './pages/brc/BrcStub';
+import BrcAudits from './pages/brc/BrcAudits';
+import BrcNonConformances from './pages/brc/BrcNonConformances';
+import BrcCapas from './pages/brc/BrcCapas';
+import BrcSuppliers from './pages/brc/BrcSuppliers';
+import BrcCalibration from './pages/brc/BrcCalibration';
+import BrcComplaints from './pages/brc/BrcComplaints';
+import BrcManagementReview from './pages/brc/BrcManagementReview';
+import BrcGlassRegister from './pages/brc/BrcGlassRegister';
+import BrcPestControl from './pages/brc/BrcPestControl';
+import BrcTraining from './pages/brc/BrcTraining';
+import { BrcAuditDetail, BrcNonConformanceDetail, BrcSupplierDetail, BrcCalibrationDetail, BrcComplaintDetail, BrcDocumentDetail } from './pages/brc/BrcStub';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();

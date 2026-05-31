@@ -1,0 +1,93 @@
+{
+  "name": "BRCCalibrationRecord",
+  "type": "object",
+  "properties": {
+    "organisation_id": {
+      "type": "string",
+      "title": "Organisation ID"
+    },
+    "equipment_name": {
+      "type": "string",
+      "title": "Equipment Name"
+    },
+    "equipment_id": {
+      "type": "string",
+      "title": "Equipment Reference ID"
+    },
+    "location": {
+      "type": "string",
+      "title": "Location"
+    },
+    "calibration_type": {
+      "type": "string",
+      "title": "Calibration Type",
+      "enum": [
+        "internal",
+        "external",
+        "in-situ"
+      ],
+      "default": "external"
+    },
+    "last_calibration_date": {
+      "type": "string",
+      "title": "Last Calibration Date (ISO date)"
+    },
+    "next_calibration_date": {
+      "type": "string",
+      "title": "Next Due Date (ISO date)"
+    },
+    "calibration_interval_months": {
+      "type": "number",
+      "title": "Interval (months)",
+      "default": 12
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "in_calibration",
+        "due_soon",
+        "overdue",
+        "out_of_service"
+      ],
+      "default": "in_calibration"
+    },
+    "performed_by": {
+      "type": "string",
+      "title": "Performed By"
+    },
+    "certificate_ref": {
+      "type": "string",
+      "title": "Certificate Reference"
+    },
+    "result": {
+      "type": "string",
+      "title": "Result",
+      "enum": [
+        "pass",
+        "fail",
+        "adjusted"
+      ],
+      "default": "pass"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    },
+    "clause_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Clause References"
+    }
+  },
+  "required": [
+    "organisation_id",
+    "equipment_name",
+    "equipment_id",
+    "last_calibration_date",
+    "next_calibration_date",
+    "status"
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "name": "BRCNonConformance",
+  "type": "object",
+  "properties": {
+    "organisation_id": {
+      "type": "string",
+      "title": "Organisation ID"
+    },
+    "ref_number": {
+      "type": "string",
+      "title": "Reference Number"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title / Description"
+    },
+    "source": {
+      "type": "string",
+      "title": "Source",
+      "enum": [
+        "internal_audit",
+        "external_audit",
+        "customer_complaint",
+        "supplier_issue",
+        "routine_check",
+        "incident"
+      ],
+      "default": "internal_audit"
+    },
+    "severity": {
+      "type": "string",
+      "title": "Severity",
+      "enum": [
+        "observation",
+        "minor",
+        "major",
+        "critical"
+      ],
+      "default": "minor"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "open",
+        "under_investigation",
+        "capa_raised",
+        "closed",
+        "overdue"
+      ],
+      "default": "open"
+    },
+    "clause_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Clause References"
+    },
+    "raised_date": {
+      "type": "string",
+      "title": "Raised Date (ISO date)"
+    },
+    "due_date": {
+      "type": "string",
+      "title": "Due Date (ISO date)"
+    },
+    "closed_date": {
+      "type": "string",
+      "title": "Closed Date (ISO date)"
+    },
+    "raised_by_user_id": {
+      "type": "string",
+      "title": "Raised By User ID"
+    },
+    "raised_by_name": {
+      "type": "string",
+      "title": "Raised By Name"
+    },
+    "assigned_to_user_id": {
+      "type": "string",
+      "title": "Assigned To User ID"
+    },
+    "assigned_to_name": {
+      "type": "string",
+      "title": "Assigned To Name"
+    },
+    "audit_id": {
+      "type": "string",
+      "title": "Related Audit ID"
+    },
+    "description": {
+      "type": "string",
+      "title": "Detailed Description"
+    },
+    "immediate_action": {
+      "type": "string",
+      "title": "Immediate Action Taken"
+    },
+    "root_cause": {
+      "type": "string",
+      "title": "Root Cause Analysis"
+    }
+  },
+  "required": [
+    "organisation_id",
+    "title",
+    "source",
+    "severity",
+    "status",
+    "raised_date"
+  ]
+}

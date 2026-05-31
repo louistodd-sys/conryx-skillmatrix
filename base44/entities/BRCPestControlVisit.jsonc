@@ -1,0 +1,84 @@
+{
+  "name": "BRCPestControlVisit",
+  "type": "object",
+  "properties": {
+    "organisation_id": {
+      "type": "string",
+      "title": "Organisation ID"
+    },
+    "contractor_name": {
+      "type": "string",
+      "title": "Contractor Name"
+    },
+    "visit_date": {
+      "type": "string",
+      "title": "Visit Date (ISO date)"
+    },
+    "visit_type": {
+      "type": "string",
+      "title": "Visit Type",
+      "enum": [
+        "routine",
+        "emergency",
+        "follow_up",
+        "annual_survey"
+      ],
+      "default": "routine"
+    },
+    "areas_inspected": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Areas Inspected"
+    },
+    "findings": {
+      "type": "string",
+      "title": "Findings"
+    },
+    "activity_level": {
+      "type": "string",
+      "title": "Activity Level",
+      "enum": [
+        "none",
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "none"
+    },
+    "treatments_applied": {
+      "type": "string",
+      "title": "Treatments Applied"
+    },
+    "recommendations": {
+      "type": "string",
+      "title": "Recommendations"
+    },
+    "next_visit_date": {
+      "type": "string",
+      "title": "Next Visit Date (ISO date)"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "scheduled",
+        "completed",
+        "action_required"
+      ],
+      "default": "scheduled"
+    },
+    "report_url": {
+      "type": "string",
+      "title": "Report File URL"
+    }
+  },
+  "required": [
+    "organisation_id",
+    "contractor_name",
+    "visit_date",
+    "visit_type",
+    "status"
+  ]
+}

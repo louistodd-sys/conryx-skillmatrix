@@ -1,0 +1,97 @@
+{
+  "name": "BRCComplaint",
+  "type": "object",
+  "properties": {
+    "organisation_id": {
+      "type": "string",
+      "title": "Organisation ID"
+    },
+    "ref_number": {
+      "type": "string",
+      "title": "Reference Number"
+    },
+    "customer_name": {
+      "type": "string",
+      "title": "Customer Name"
+    },
+    "complaint_date": {
+      "type": "string",
+      "title": "Complaint Date (ISO date)"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "quality",
+        "contamination",
+        "labelling",
+        "delivery",
+        "service",
+        "other"
+      ],
+      "default": "quality"
+    },
+    "severity": {
+      "type": "string",
+      "title": "Severity",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "product_ref": {
+      "type": "string",
+      "title": "Product / Batch Reference"
+    },
+    "status": {
+      "type": "string",
+      "title": "Status",
+      "enum": [
+        "new",
+        "investigating",
+        "resolved",
+        "closed"
+      ],
+      "default": "new"
+    },
+    "root_cause": {
+      "type": "string",
+      "title": "Root Cause"
+    },
+    "corrective_action": {
+      "type": "string",
+      "title": "Corrective Action"
+    },
+    "response_sent_date": {
+      "type": "string",
+      "title": "Response Sent Date (ISO date)"
+    },
+    "closed_date": {
+      "type": "string",
+      "title": "Closed Date (ISO date)"
+    },
+    "capa_id": {
+      "type": "string",
+      "title": "Linked CAPA ID"
+    },
+    "assigned_to_name": {
+      "type": "string",
+      "title": "Assigned To"
+    }
+  },
+  "required": [
+    "organisation_id",
+    "customer_name",
+    "complaint_date",
+    "category",
+    "description",
+    "status"
+  ]
+}

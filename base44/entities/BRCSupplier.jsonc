@@ -1,0 +1,103 @@
+{
+  "name": "BRCSupplier",
+  "type": "object",
+  "properties": {
+    "organisation_id": {
+      "type": "string",
+      "title": "Organisation ID"
+    },
+    "name": {
+      "type": "string",
+      "title": "Supplier Name"
+    },
+    "supplier_code": {
+      "type": "string",
+      "title": "Supplier Code"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "enum": [
+        "raw_material",
+        "packaging",
+        "service",
+        "logistics",
+        "utilities",
+        "other"
+      ],
+      "default": "raw_material"
+    },
+    "approval_status": {
+      "type": "string",
+      "title": "Approval Status",
+      "enum": [
+        "approved",
+        "conditional",
+        "unapproved",
+        "suspended",
+        "under_review"
+      ],
+      "default": "under_review"
+    },
+    "approval_method": {
+      "type": "string",
+      "title": "Approval Method",
+      "enum": [
+        "questionnaire",
+        "audit",
+        "certificate_review",
+        "third_party_cert",
+        "historical_performance"
+      ],
+      "default": "questionnaire"
+    },
+    "last_review_date": {
+      "type": "string",
+      "title": "Last Review Date (ISO date)"
+    },
+    "next_review_date": {
+      "type": "string",
+      "title": "Next Review Date (ISO date)"
+    },
+    "contact_name": {
+      "type": "string",
+      "title": "Contact Name"
+    },
+    "contact_email": {
+      "type": "string",
+      "title": "Contact Email"
+    },
+    "country": {
+      "type": "string",
+      "title": "Country"
+    },
+    "certifications": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Certifications Held"
+    },
+    "risk_rating": {
+      "type": "string",
+      "title": "Risk Rating",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": [
+    "organisation_id",
+    "name",
+    "category",
+    "approval_status"
+  ]
+}
