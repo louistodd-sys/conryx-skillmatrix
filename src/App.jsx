@@ -43,7 +43,8 @@ import BrcTraining from './pages/brc/BrcTraining';
 import BrcActionCentre from './pages/brc/BrcActionCentre';
 import BrcAnalytics from './pages/brc/BrcAnalytics';
 import BrcAuditChecklist from './pages/brc/BrcAuditChecklist';
-import { BrcAuditDetail, BrcNonConformanceDetail, BrcSupplierDetail, BrcCalibrationDetail, BrcComplaintDetail, BrcDocumentDetail } from './pages/brc/BrcStub';
+import BrcDocumentDetail from './pages/brc/BrcDocumentDetail';
+import { BrcAuditDetail, BrcNonConformanceDetail, BrcSupplierDetail, BrcCalibrationDetail, BrcComplaintDetail } from './pages/brc/BrcStub';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();

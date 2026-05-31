@@ -67,6 +67,3 @@ export function BrcPestControl() {
 export function BrcTraining() {
   return <BrcModuleGuard><StubContent title="Training Register" description="BRC-aligned training records. Links to Skills Matrix assessments when both modules are active." /></BrcModuleGuard>;
 }
-export function BrcDocumentDetail() {
-  return <BrcModuleGuard><StubContent title="Document Detail" /></BrcModuleGuard>;
-}
