@@ -19,6 +19,7 @@ function BrcClausesContent() {
   const [clauses, setClauses] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,9 +38,19 @@ function BrcClausesContent() {
 
   const statusMap = Object.fromEntries(statuses.map(s => [s.clause_id, s]));
 
-  const filtered = clauses.filter(c =>
-    !search || c.clause_number.includes(search) || c.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = clauses.filter(c => {
+    const matchSearch = !search || c.clause_number.includes(search) || c.title.toLowerCase().includes(search.toLowerCase());
+    const st = statusMap[c.id];
+    const matchStatus =
+      statusFilter === 'all' ? true :
+      statusFilter === 'not_started' ? (!st || st.status === 'not_started') :
+      statusFilter === 'fundamental' ? c.is_fundamental :
+      st?.status === statusFilter;
+    return matchSearch && matchStatus;
+  });
+
+  const notStartedCount = clauses.filter(c => !statusMap[c.id] || statusMap[c.id]?.status === 'not_started').length;
+  const readyCount = clauses.filter(c => statusMap[c.id]?.status === 'ready').length;
 
   if (!org?.brc_standard) {
     return (
@@ -55,10 +66,32 @@ function BrcClausesContent() {
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="text-2xl font-bold text-foreground">Clause Mapping</h1>
-        <div className="relative w-64">
+        <div className="relative w-56">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
           <Input className="pl-8 h-9 text-sm" placeholder="Search clauses…" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
+      </div>
+
+      {/* Summary + filter */}
+      <div className="flex flex-wrap items-center gap-2">
+        {[
+          { key: 'all',          label: `All (${clauses.length})` },
+          { key: 'not_started',  label: `Not Started (${notStartedCount})` },
+          { key: 'in_progress',  label: 'In Progress' },
+          { key: 'evidence_attached', label: 'Evidence Attached' },
+          { key: 'ready',        label: `Ready (${readyCount})` },
+          { key: 'fundamental',  label: '★ Fundamentals' },
+        ].map(f => (
+          <button
+            key={f.key}
+            onClick={() => setStatusFilter(f.key)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              statusFilter === f.key ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/70'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       {loading ? (

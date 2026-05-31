@@ -6,6 +6,7 @@ import {
   BookOpen, ScrollText, Settings, Bell, Menu, X, LogOut,
   ShieldCheck, FileText, ClipboardList, AlertTriangle, Truck,
   Wrench, MessageSquare, FlaskConical, Bug, GraduationCap,
+  TrendingUp, CheckSquare,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
@@ -75,6 +76,9 @@ const brcAdminNav = [
     section: 'Compliance',
     items: [
       { label: 'BRC Dashboard',      icon: ShieldCheck,    path: '/brc' },
+      { label: 'Action Centre',      icon: Bell,           path: '/brc/action-centre' },
+      { label: 'Analytics',          icon: TrendingUp,     path: '/brc/analytics' },
+      { label: 'Audit Checklist',    icon: CheckSquare,    path: '/brc/audit-checklist' },
       { label: 'Clause Mapping',     icon: ClipboardList,  path: '/brc/clauses' },
       { label: 'Documents',          icon: FileText,       path: '/brc/documents' },
     ],
@@ -132,6 +136,9 @@ const pageTitles = {
   '/brc/glass-register':     'Glass Register',
   '/brc/pest-control':       'Pest Control',
   '/brc/training':           'Training Register',
+  '/brc/action-centre':      'Action Centre',
+  '/brc/analytics':          'Compliance Analytics',
+  '/brc/audit-checklist':    'Pre-Audit Checklist',
   '/brc/settings':           'BRC Settings',
 };
 

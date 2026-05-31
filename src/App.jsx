@@ -40,6 +40,9 @@ import BrcManagementReview from './pages/brc/BrcManagementReview';
 import BrcGlassRegister from './pages/brc/BrcGlassRegister';
 import BrcPestControl from './pages/brc/BrcPestControl';
 import BrcTraining from './pages/brc/BrcTraining';
+import BrcActionCentre from './pages/brc/BrcActionCentre';
+import BrcAnalytics from './pages/brc/BrcAnalytics';
+import BrcAuditChecklist from './pages/brc/BrcAuditChecklist';
 import { BrcAuditDetail, BrcNonConformanceDetail, BrcSupplierDetail, BrcCalibrationDetail, BrcComplaintDetail, BrcDocumentDetail } from './pages/brc/BrcStub';
 
 const AuthenticatedApp = () => {
@@ -115,6 +118,9 @@ const AuthenticatedApp = () => {
           <Route path="/brc/glass-register"                   element={<BrcGlassRegister />} />
           <Route path="/brc/pest-control"                     element={<BrcPestControl />} />
           <Route path="/brc/training"                         element={<BrcTraining />} />
+          <Route path="/brc/action-centre"                    element={<BrcActionCentre />} />
+          <Route path="/brc/analytics"                        element={<BrcAnalytics />} />
+          <Route path="/brc/audit-checklist"                  element={<BrcAuditChecklist />} />
           <Route path="/brc/settings"                         element={<BrcSettings />} />
         </Route>
 

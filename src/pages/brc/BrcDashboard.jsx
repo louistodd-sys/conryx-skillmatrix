@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ShieldCheck, TrendingUp, AlertTriangle, Clock, CheckCircle2, RefreshCw } from 'lucide-react';
+import { ShieldCheck, TrendingUp, AlertTriangle, Clock, CheckCircle2, RefreshCw, Bell, ChevronRight, CheckSquare } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import useOrganisation from '@/lib/useOrganisation';
@@ -10,6 +10,7 @@ import TeamCertStatus from '@/components/brc/TeamCertStatus';
 import SectionReadiness from '@/components/brc/SectionReadiness';
 import AuditCountdown from '@/components/brc/AuditCountdown';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 function StatCard({ label, value, icon: Icon, colorClass, bgClass }) {
   return (
@@ -35,6 +36,7 @@ function BrcDashboardContent() {
   const [skills,      setSkills]      = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [recomputing, setRecomputing] = useState(false);
+  const [actionSummary, setActionSummary] = useState({ critical: 0, warning: 0 });
 
   const orgId  = org?.id;
   const score  = org?.brc_readiness_score || null;
@@ -45,13 +47,16 @@ function BrcDashboardContent() {
 
     async function load() {
       setLoading(true);
-      const [cls, sts, tms, mbs, ass, skl] = await Promise.all([
+      const [cls, sts, tms, mbs, ass, skl, capas, ncs, cals] = await Promise.all([
         base44.entities.BRCClause.filter({ standard: org.brc_standard }, 'display_order', 500),
         base44.entities.BRCClauseStatus.filter({ organisation_id: orgId }, '-updated_date', 500),
         base44.entities.Team.filter({ organisation_id: orgId }),
         base44.entities.TeamMember.filter({ organisation_id: orgId }),
         base44.entities.SkillAssessment.filter({ organisation_id: orgId }),
         base44.entities.Skill.filter({ organisation_id: orgId }),
+        base44.entities.BRCCAPA.filter({ organisation_id: orgId }),
+        base44.entities.BRCNonConformance.filter({ organisation_id: orgId }),
+        base44.entities.BRCCalibrationRecord.filter({ organisation_id: orgId }),
       ]);
       setClauses(cls);
       setStatuses(sts);
@@ -59,6 +64,19 @@ function BrcDashboardContent() {
       setMembers(mbs);
       setAssessments(ass);
       setSkills(skl);
+
+      // Compute action centre quick summary
+      const today2 = new Date();
+      const isOverdue = (dateStr) => dateStr && new Date(dateStr) < today2;
+      const criticalCount =
+        capas.filter(c => c.status === 'overdue' || (isOverdue(c.due_date) && c.status !== 'completed' && c.status !== 'verified')).length +
+        ncs.filter(n => (n.status === 'open' || n.status === 'under_investigation') && isOverdue(n.due_date)).length +
+        cals.filter(r => r.status === 'overdue').length +
+        ass.filter(a => a.expiry_date && new Date(a.expiry_date) < today2).length;
+      const warningCount =
+        cals.filter(r => r.status === 'due_soon').length +
+        ass.filter(a => { const d = a.expiry_date && Math.ceil((new Date(a.expiry_date) - today2) / 86400000); return d >= 0 && d <= 30; }).length;
+      setActionSummary({ critical: criticalCount, warning: warningCount });
       setLoading(false);
     }
     load();
@@ -158,6 +176,48 @@ function BrcDashboardContent() {
         <div className="lg:col-span-2">
           <SectionReadiness bySection={score?.by_section} />
         </div>
+      </div>
+
+      {/* Action Centre quick summary */}
+      {(actionSummary.critical > 0 || actionSummary.warning > 0) && (
+        <Link to="/brc/action-centre" className="block">
+          <div className={`border rounded-xl p-4 flex items-center gap-4 hover:opacity-90 transition-opacity ${
+            actionSummary.critical > 0 ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'
+          }`}>
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${actionSummary.critical > 0 ? 'bg-red-100' : 'bg-amber-100'}`}>
+              <Bell className={`w-4 h-4 ${actionSummary.critical > 0 ? 'text-red-600' : 'text-amber-600'}`} />
+            </div>
+            <div className="flex-1">
+              <p className={`text-sm font-semibold ${actionSummary.critical > 0 ? 'text-red-800' : 'text-amber-800'}`}>
+                {actionSummary.critical > 0
+                  ? `${actionSummary.critical} critical action${actionSummary.critical !== 1 ? 's' : ''} require immediate attention`
+                  : `${actionSummary.warning} item${actionSummary.warning !== 1 ? 's' : ''} require attention soon`}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">View Action Centre for full details →</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+          </div>
+        </Link>
+      )}
+
+      {/* Shortcut cards to new pages */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {[
+          { label: 'Action Centre', desc: 'Overdue tasks & expiring records', path: '/brc/action-centre', icon: Bell, color: 'text-red-600', bg: 'bg-red-50 border-red-200' },
+          { label: 'Analytics', desc: 'NC rates, CAPA closure & trends', path: '/brc/analytics', icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
+          { label: 'Audit Checklist', desc: 'Pre-audit readiness check', path: '/brc/audit-checklist', icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50 border-green-200' },
+        ].map(({ label, desc, path, icon: Icon, color, bg }) => (
+          <Link key={path} to={path} className={`border rounded-xl p-4 flex items-center gap-3 hover:opacity-80 transition-opacity ${bg}`}>
+            <div className="w-9 h-9 rounded-lg bg-white/60 flex items-center justify-center shrink-0">
+              <Icon className={`w-4 h-4 ${color}`} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">{label}</p>
+              <p className="text-xs text-muted-foreground">{desc}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 ml-auto" />
+          </Link>
+        ))}
       </div>
 
       {/* Urgent items + team cert status */}
