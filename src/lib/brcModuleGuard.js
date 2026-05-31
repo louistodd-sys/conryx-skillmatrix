@@ -20,6 +20,12 @@ export function hasMultipleModules(org) {
   return Array.isArray(org.modules) && org.modules.length > 1;
 }
 
+// Returns true if the org has a paid/active BRC entitlement
+export function hasBrcEntitlement(org) {
+  if (!org) return false;
+  return org.brc_subscription_status === 'active' || org.brc_subscription_status === 'trialing';
+}
+
 export const MODULE_SKILLS_MATRIX  = 'skills_matrix';
 export const MODULE_BRC_COMPLIANCE = 'brc_compliance';
 

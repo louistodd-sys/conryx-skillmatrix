@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, CreditCard, Download, Loader2, Check, ExternalLink, Settings } from 'lucide-react';
+import { TrendingUp, CreditCard, Download, Loader2, Check, ExternalLink, Settings, ShieldCheck, ArrowRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { TIER_LABELS, TIER_PRICING, TIER_LIMITS, TIER_FEATURES } from '@/lib/tierConfig';
+import { TIER_LABELS, TIER_PRICING, TIER_LIMITS, TIER_FEATURES, BRC_PRICING } from '@/lib/tierConfig';
+import { Link } from 'react-router-dom';
 
 const TIER_ORDER = ['free', 'starter', 'growth', 'scale'];
 
@@ -63,6 +64,20 @@ export default function BillingSection({ org }) {
   const formatAmount = (amount, currency) => {
     return new Intl.NumberFormat('en-GB', { style: 'currency', currency: currency?.toUpperCase() || 'GBP' })
       .format(amount / 100);
+  };
+
+  const brcStatus = org?.brc_subscription_status;
+  const brcActive = brcStatus === 'active' || brcStatus === 'trialing';
+  const brcRenewalDate = org?.brc_current_period_end
+    ? new Date(org.brc_current_period_end).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+    : null;
+
+  const [brcCheckoutLoading, setBrcCheckoutLoading] = useState(false);
+  const handleBrcSubscribe = async () => {
+    setBrcCheckoutLoading(true);
+    const res = await base44.functions.invoke('stripeBrcCheckout', { billing_interval: 'monthly' });
+    if (res.data?.url) window.location.href = res.data.url;
+    setBrcCheckoutLoading(false);
   };
 
   return (
@@ -177,6 +192,61 @@ export default function BillingSection({ org }) {
             </div>
           );
         })}
+      </div>
+
+      {/* BRC Compliance module billing */}
+      <div className="rounded-xl border border-border p-5 space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <ShieldCheck className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">BRC Compliance Readiness</p>
+              <p className="text-xs text-muted-foreground">Add-on module — purchased independently</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {brcActive ? (
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-green-100 text-green-700 uppercase tracking-wide">
+                {brcStatus === 'trialing' ? 'Trial' : 'Active'}
+              </span>
+            ) : brcStatus === 'past_due' ? (
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 uppercase tracking-wide">
+                Past Due
+              </span>
+            ) : (
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 uppercase tracking-wide">
+                Not Active
+              </span>
+            )}
+          </div>
+        </div>
+
+        {brcActive ? (
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <p className="text-xs text-muted-foreground">
+              {brcRenewalDate ? `Renews ${brcRenewalDate}` : 'Active'}
+            </p>
+            <Button variant="outline" size="sm" onClick={handleManageSubscription} disabled={portalLoading}>
+              {portalLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Settings className="w-3.5 h-3.5 mr-1.5" />Manage BRC Subscription</>}
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <p className="text-xs text-muted-foreground">
+              From <span className="font-semibold text-foreground">£{BRC_PRICING.monthly}/mo</span> or <span className="font-semibold text-foreground">£{BRC_PRICING.annual}/yr</span> + VAT. 14-day free trial.
+            </p>
+            <div className="flex items-center gap-2">
+              <Button size="sm" onClick={handleBrcSubscribe} disabled={brcCheckoutLoading} className="gap-1.5">
+                {brcCheckoutLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><ArrowRight className="w-3.5 h-3.5" />Start Free Trial</>}
+              </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/upgrade-brc">View features</Link>
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Invoice history */}

@@ -231,6 +231,13 @@ export function isAtLimit(tier, resource, currentCount) {
   return currentCount >= limit;
 }
 
+// ── BRC module pricing (add-on, independent of Skills Matrix tier) ────────────
+
+export const BRC_PRICING = {
+  monthly: 49,
+  annual: 490, // ~17% saving vs monthly
+};
+
 // ── Next tier up ──────────────────────────────────────────────────────────────
 
 export function getNextTier(currentTier) {

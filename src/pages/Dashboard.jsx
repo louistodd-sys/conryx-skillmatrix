@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Users, BookOpen, ClipboardCheck, AlertTriangle, TrendingUp, Clock,
-  CheckCircle2, Circle, X, ArrowRight, ChevronRight,
+  CheckCircle2, Circle, X, ArrowRight, ChevronRight, Link2, ShieldCheck,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
+import { hasBrcModule, hasMultipleModules } from '@/lib/brcModuleGuard';
 import MetricCard from '@/components/MetricCard';
 import RAGBar from '@/components/RAGBar';
 import EmptyState from '@/components/EmptyState';
@@ -321,6 +322,30 @@ export default function Dashboard() {
           {user?.role === 'manager' ? 'Your team overview' : `${org.name} · skills compliance overview`}
         </p>
       </div>
+
+      {/* BRC: connected banner (both modules active) */}
+      {hasMultipleModules(org) && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-primary/5 border border-primary/15">
+          <Link2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+          <p className="text-xs text-muted-foreground">
+            <span className="font-semibold text-foreground">BRC Compliance connected.</span>
+            {' '}Assessments feed the BRC Training Register automatically and expired skills appear in the BRC Action Centre.{' '}
+            <Link to="/brc" className="text-primary underline">Go to BRC Dashboard →</Link>
+          </p>
+        </div>
+      )}
+
+      {/* BRC: upsell nudge for admins (BRC not active) */}
+      {isAdmin && !hasBrcModule(org) && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-muted/40 border border-border">
+          <ShieldCheck className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+          <p className="text-xs text-muted-foreground">
+            <span className="font-semibold text-foreground">Add BRC Compliance Readiness.</span>
+            {' '}Track BRCGS clauses, documents, audits, and CAPAs alongside your skills data.{' '}
+            <Link to="/upgrade-brc" className="text-primary underline font-medium">Learn more →</Link>
+          </p>
+        </div>
+      )}
 
       {/* Onboarding checklist */}
       {!checklistDismissed && !org.onboarding_completed && (

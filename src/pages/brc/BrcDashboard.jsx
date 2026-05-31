@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { ShieldCheck, TrendingUp, AlertTriangle, Clock, CheckCircle2, RefreshCw, Bell, ChevronRight, CheckSquare } from 'lucide-react';
+import { ShieldCheck, TrendingUp, AlertTriangle, Clock, CheckCircle2, RefreshCw, Bell, ChevronRight, CheckSquare, Link2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import useOrganisation from '@/lib/useOrganisation';
-import { BRC_STANDARD_LABELS } from '@/lib/brcModuleGuard';
+import { BRC_STANDARD_LABELS, hasMultipleModules } from '@/lib/brcModuleGuard';
 import ReadinessScoreRing from '@/components/brc/ReadinessScoreRing';
 import UrgentItems from '@/components/brc/UrgentItems';
 import TeamCertStatus from '@/components/brc/TeamCertStatus';
@@ -123,6 +123,18 @@ function BrcDashboardContent() {
 
       {/* Audit countdown banner */}
       <AuditCountdown org={org} />
+
+      {/* Connected banner — shown when both modules are active */}
+      {hasMultipleModules(org) && (
+        <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-primary/5 border border-primary/15">
+          <Link2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+          <p className="text-xs text-muted-foreground">
+            <span className="font-semibold text-foreground">Skills Matrix connected.</span>
+            {' '}Your Training Register auto-populates from assessments, and the Action Centre aggregates expired skills alongside compliance items.{' '}
+            <a href="/brc/training" className="text-primary underline">View Training Register →</a>
+          </p>
+        </div>
+      )}
 
       {/* KPI stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

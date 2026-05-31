@@ -26,22 +26,44 @@ Deno.serve(async (req) => {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const orgId = session.metadata?.organisation_id;
-    const tier  = session.metadata?.tier;
+    const orgId   = session.metadata?.organisation_id;
+    const product  = session.metadata?.product;
+    const tier     = session.metadata?.tier;
     const interval = session.metadata?.billing_interval;
 
-    if (orgId && tier) {
+    if (orgId && product === 'brc_compliance') {
+      // BRC module checkout
       const sub = await stripe.subscriptions.retrieve(session.subscription);
-      const trialEnd = sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null;
-      const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
+      const trialEnd  = sub.trial_end           ? new Date(sub.trial_end           * 1000).toISOString() : null;
+      const periodEnd = sub.current_period_end  ? new Date(sub.current_period_end  * 1000).toISOString() : null;
+
+      const orgs = await base44.asServiceRole.entities.Organisation.filter({ id: orgId });
+      const org = orgs[0];
+      const existingModules = Array.isArray(org?.modules) ? org.modules : ['skills_matrix'];
+      const modules = [...new Set([...existingModules, 'brc_compliance'])];
 
       await base44.asServiceRole.entities.Organisation.update(orgId, {
-        subscription_tier: tier,
-        billing_interval: interval,
-        stripe_subscription_id: sub.id,
+        brc_subscription_status:    sub.status,
+        brc_stripe_subscription_id: sub.id,
+        brc_billing_interval:       interval,
+        brc_current_period_end:     periodEnd,
+        brc_trial_end_date:         trialEnd,
+        brc_module_enabled_at:      new Date().toISOString(),
+        modules,
+      });
+    } else if (orgId && tier) {
+      // Skills Matrix tier checkout
+      const sub = await stripe.subscriptions.retrieve(session.subscription);
+      const trialEnd  = sub.trial_end           ? new Date(sub.trial_end           * 1000).toISOString() : null;
+      const periodEnd = sub.current_period_end  ? new Date(sub.current_period_end  * 1000).toISOString() : null;
+
+      await base44.asServiceRole.entities.Organisation.update(orgId, {
+        subscription_tier:          tier,
+        billing_interval:           interval,
+        stripe_subscription_id:     sub.id,
         stripe_subscription_status: sub.status,
-        current_period_end: periodEnd,
-        trial_end_date: trialEnd,
+        current_period_end:         periodEnd,
+        trial_end_date:             trialEnd,
       });
     }
   }
@@ -51,16 +73,34 @@ Deno.serve(async (req) => {
     const org = await getOrgFromSub(sub);
     if (!org) return new Response('OK', { status: 200 });
 
-    const tier = sub.metadata?.tier || org.subscription_tier;
-    const interval = sub.metadata?.billing_interval || org.billing_interval;
     const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
 
-    await base44.asServiceRole.entities.Organisation.update(org.id, {
-      subscription_tier: sub.status === 'active' || sub.status === 'trialing' ? tier : 'free',
-      stripe_subscription_status: sub.status,
-      billing_interval: interval,
-      current_period_end: periodEnd,
-    });
+    if (sub.metadata?.product === 'brc_compliance') {
+      // BRC subscription update
+      const isActive = sub.status === 'active' || sub.status === 'trialing';
+      const existingModules = Array.isArray(org.modules) ? org.modules : ['skills_matrix'];
+      const modules = isActive
+        ? [...new Set([...existingModules, 'brc_compliance'])]
+        : existingModules.filter(m => m !== 'brc_compliance');
+
+      await base44.asServiceRole.entities.Organisation.update(org.id, {
+        brc_subscription_status:    sub.status,
+        brc_billing_interval:       sub.metadata?.billing_interval || org.brc_billing_interval,
+        brc_current_period_end:     periodEnd,
+        modules,
+      });
+    } else {
+      // Skills Matrix tier update
+      const tier     = sub.metadata?.tier     || org.subscription_tier;
+      const interval = sub.metadata?.billing_interval || org.billing_interval;
+
+      await base44.asServiceRole.entities.Organisation.update(org.id, {
+        subscription_tier:          sub.status === 'active' || sub.status === 'trialing' ? tier : 'free',
+        stripe_subscription_status: sub.status,
+        billing_interval:           interval,
+        current_period_end:         periodEnd,
+      });
+    }
   }
 
   // Only downgrade after ALL retries exhausted — triggered by invoice.payment_failed
@@ -72,10 +112,16 @@ Deno.serve(async (req) => {
       const sub = await stripe.subscriptions.retrieve(invoice.subscription);
       const orgId = sub.metadata?.organisation_id;
       if (orgId) {
-        await base44.asServiceRole.entities.Organisation.update(orgId, {
-          subscription_tier: 'free',
-          stripe_subscription_status: 'past_due',
-        });
+        if (sub.metadata?.product === 'brc_compliance') {
+          await base44.asServiceRole.entities.Organisation.update(orgId, {
+            brc_subscription_status: 'past_due',
+          });
+        } else {
+          await base44.asServiceRole.entities.Organisation.update(orgId, {
+            subscription_tier: 'free',
+            stripe_subscription_status: 'past_due',
+          });
+        }
       }
     }
   }
@@ -84,12 +130,22 @@ Deno.serve(async (req) => {
     const sub = event.data.object;
     const org = await getOrgFromSub(sub);
     if (org) {
-      await base44.asServiceRole.entities.Organisation.update(org.id, {
-        subscription_tier: 'free',
-        stripe_subscription_status: 'canceled',
-        stripe_subscription_id: null,
-        current_period_end: null,
-      });
+      if (sub.metadata?.product === 'brc_compliance') {
+        const modules = (org.modules || ['skills_matrix']).filter(m => m !== 'brc_compliance');
+        await base44.asServiceRole.entities.Organisation.update(org.id, {
+          brc_subscription_status:    'canceled',
+          brc_stripe_subscription_id: null,
+          brc_current_period_end:     null,
+          modules,
+        });
+      } else {
+        await base44.asServiceRole.entities.Organisation.update(org.id, {
+          subscription_tier:          'free',
+          stripe_subscription_status: 'canceled',
+          stripe_subscription_id:     null,
+          current_period_end:         null,
+        });
+      }
     }
   }
 

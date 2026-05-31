@@ -122,6 +122,29 @@
       "type": "string",
       "title": "BRC Module Enabled At (ISO datetime)"
     },
+    "brc_subscription_status": {
+      "type": "string",
+      "title": "BRC Subscription Status",
+      "enum": ["trialing", "active", "canceled", "past_due"]
+    },
+    "brc_stripe_subscription_id": {
+      "type": "string",
+      "title": "BRC Stripe Subscription ID"
+    },
+    "brc_billing_interval": {
+      "type": "string",
+      "title": "BRC Billing Interval",
+      "enum": ["monthly", "annual"],
+      "default": "monthly"
+    },
+    "brc_current_period_end": {
+      "type": "string",
+      "title": "BRC Current Period End (ISO date)"
+    },
+    "brc_trial_end_date": {
+      "type": "string",
+      "title": "BRC Trial End Date (ISO date)"
+    },
     "brc_readiness_score": {
       "type": "object",
       "title": "BRC Readiness Score (cached)",
