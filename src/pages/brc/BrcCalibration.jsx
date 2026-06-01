@@ -4,8 +4,9 @@ import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Wrench, Search, AlertTriangle } from 'lucide-react';
+import { Plus, Wrench, Search, AlertTriangle, Link2 } from 'lucide-react';
 import CalibrationFormModal from '@/components/brc/CalibrationFormModal';
+import ClausePickerModal from '@/components/brc/ClausePickerModal';
 
 const STATUS_CFG = {
   in_calibration: { bg: 'bg-green-100', text: 'text-green-700', label: 'In Calibration' },
@@ -21,6 +22,7 @@ function BrcCalibrationContent() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [clausePicker, setClausePicker] = useState(null);
 
   const load = () => {
     if (!org) return;
@@ -106,7 +108,12 @@ function BrcCalibrationContent() {
                     <td className="px-4 py-3 text-xs text-muted-foreground hidden md:table-cell">{r.last_calibration_date || '—'}</td>
                     <td className="px-4 py-3 text-xs text-muted-foreground hidden md:table-cell">{r.next_calibration_date || '—'}</td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => { setEditing(r); setShowModal(true); }} className="text-primary hover:underline text-xs font-medium">Edit</button>
+                      <div className="flex items-center justify-end gap-3">
+                        <button onClick={() => setClausePicker(r)} className="text-muted-foreground hover:text-primary transition-colors" title="Link to clause" aria-label="Link to clause">
+                          <Link2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => { setEditing(r); setShowModal(true); }} className="text-primary hover:underline text-xs font-medium">Edit</button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -122,6 +129,15 @@ function BrcCalibrationContent() {
           record={editing}
           onClose={() => setShowModal(false)}
           onSaved={() => { setShowModal(false); load(); }}
+        />
+      )}
+      {clausePicker && (
+        <ClausePickerModal
+          org={org}
+          entityType="BRCCalibrationRecord"
+          recordId={clausePicker.id}
+          recordLabel={`${clausePicker.equipment_id || ''} ${clausePicker.equipment_name}`}
+          onClose={() => setClausePicker(null)}
         />
       )}
     </div>

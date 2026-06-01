@@ -5,8 +5,9 @@ import useOrganisation from '@/lib/useOrganisation';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, ScrollText, Search, Calendar, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
+import { Plus, ScrollText, Search, Calendar, CheckCircle2, Clock, AlertTriangle, Link2 } from 'lucide-react';
 import AuditFormModal from '@/components/brc/AuditFormModal';
+import ClausePickerModal from '@/components/brc/ClausePickerModal';
 
 const STATUS_CFG = {
   planned:     { label: 'Planned',     bg: 'bg-blue-100',  text: 'text-blue-700',  icon: Clock },
@@ -29,6 +30,7 @@ function BrcAuditsContent() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [clausePicker, setClausePicker] = useState(null);
 
   const load = () => {
     if (!org) return;
@@ -120,7 +122,12 @@ function BrcAuditsContent() {
                       {rc ? <span className={`inline-flex text-xs font-semibold px-2 py-0.5 rounded-full ${rc.bg} ${rc.text}`}>{rc.label}</span> : <span className="text-xs text-muted-foreground">—</span>}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => { setEditing(a); setShowModal(true); }} className="text-primary hover:underline text-xs font-medium">Edit</button>
+                      <div className="flex items-center justify-end gap-3">
+                        <button onClick={() => setClausePicker(a)} className="text-muted-foreground hover:text-primary transition-colors" title="Link to clause" aria-label="Link to clause">
+                          <Link2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => { setEditing(a); setShowModal(true); }} className="text-primary hover:underline text-xs font-medium">Edit</button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -136,6 +143,15 @@ function BrcAuditsContent() {
           audit={editing}
           onClose={() => setShowModal(false)}
           onSaved={() => { setShowModal(false); load(); }}
+        />
+      )}
+      {clausePicker && (
+        <ClausePickerModal
+          org={org}
+          entityType="BRCAudit"
+          recordId={clausePicker.id}
+          recordLabel={clausePicker.title}
+          onClose={() => setClausePicker(null)}
         />
       )}
     </div>

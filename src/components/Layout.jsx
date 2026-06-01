@@ -323,6 +323,33 @@ export default function Layout() {
         {/* Module switcher */}
         <ModuleSwitcher org={org} activeModule={activeModule} onSwitch={handleModuleSwitch} />
 
+        {/* BRC stage progress indicator */}
+        {activeModule === MODULE_BRC_COMPLIANCE && hasBrcModule(org) && (() => {
+          const hasSetup = !!(org?.brc_standard && org?.brc_audit_target_date);
+          const score = org?.brc_readiness_score?.overall_percent ?? 0;
+          let stage = 1;
+          if (hasSetup && score === 0) stage = 2;
+          else if (hasSetup && score > 0 && score < 50) stage = 3;
+          else if (hasSetup && score >= 50 && score < 80) stage = 4;
+          else if (hasSetup && score >= 80) stage = 5;
+          const STAGE_LABELS = ['', 'Setup', 'Map Clauses', 'Add Evidence', 'Close Gaps', 'Verify', 'Audit Ready'];
+          return (
+            <div className="mx-3 mt-1 mb-1 px-3 py-2 rounded-lg bg-sidebar-accent/50">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/50">Audit Readiness</span>
+                <span className="text-[10px] font-bold text-sidebar-primary">Stage {stage}/6</span>
+              </div>
+              <div className="w-full h-1 rounded-full bg-sidebar-border overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-sidebar-primary transition-all duration-500"
+                  style={{ width: `${Math.round((stage / 6) * 100)}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-sidebar-foreground/50 mt-1">{STAGE_LABELS[stage]}</p>
+            </div>
+          );
+        })()}
+
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
           {navGroups.map((group) => (

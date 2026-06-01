@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
-import { Plus, Bug, Calendar, CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
+import { Plus, Bug, Calendar, CheckCircle2, AlertTriangle, Clock, Link2 } from 'lucide-react';
 import PestControlFormModal from '@/components/brc/PestControlFormModal';
+import ClausePickerModal from '@/components/brc/ClausePickerModal';
 
 const STATUS_CFG = {
   scheduled:       { bg: 'bg-blue-100',  text: 'text-blue-700',  label: 'Scheduled'       },
@@ -24,6 +25,7 @@ function BrcPestControlContent() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [clausePicker, setClausePicker] = useState(null);
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
 
@@ -97,7 +99,12 @@ function BrcPestControlContent() {
                     </span>
                   )}
                 </div>
-                <button onClick={() => { setEditing(v); setShowModal(true); }} className="text-primary hover:underline text-xs font-medium shrink-0">Edit</button>
+                <div className="flex items-center gap-3 shrink-0">
+                  <button onClick={() => setClausePicker(v)} className="text-muted-foreground hover:text-primary transition-colors" title="Link to clause" aria-label="Link to clause">
+                    <Link2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => { setEditing(v); setShowModal(true); }} className="text-primary hover:underline text-xs font-medium">Edit</button>
+                </div>
               </div>
             );
           })}
@@ -117,6 +124,15 @@ function BrcPestControlContent() {
           visit={editing}
           onClose={() => setShowModal(false)}
           onSaved={() => { setShowModal(false); load(); }}
+        />
+      )}
+      {clausePicker && (
+        <ClausePickerModal
+          org={org}
+          entityType="BRCPestControlVisit"
+          recordId={clausePicker.id}
+          recordLabel={`Pest Control Visit ${clausePicker.visit_date || ''}`}
+          onClose={() => setClausePicker(null)}
         />
       )}
     </div>
