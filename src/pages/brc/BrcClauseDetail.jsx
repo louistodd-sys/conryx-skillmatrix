@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
-import { ArrowLeft, FileText, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { FileText, ExternalLink, CheckCircle2 } from 'lucide-react';
+import Breadcrumb from '@/components/Breadcrumb';
 import { Button } from '@/components/ui/button';
 
 const STATUS_OPTIONS = ['not_started','in_progress','evidence_attached','ready','needs_review'];
@@ -93,10 +94,11 @@ function BrcClauseDetailContent() {
 
   return (
     <div className="space-y-6 max-w-2xl">
+      <Breadcrumb items={[
+        { label: 'Clause Mapping', href: '/brc/clauses' },
+        { label: `${clause.clause_number} — ${clause.title}` },
+      ]} />
       <div className="flex items-center gap-2 flex-wrap">
-        <Link to="/brc/clauses" className="text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-        </Link>
         <h1 className="text-xl font-bold text-foreground">{clause.clause_number} — {clause.title}</h1>
         {clause.is_fundamental && (
           <span className="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">★ Fundamental</span>

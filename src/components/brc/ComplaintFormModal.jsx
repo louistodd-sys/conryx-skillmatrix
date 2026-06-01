@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const CATEGORIES = ['quality','contamination','labelling','delivery','service','other'];
 const SEVERITIES = ['low','medium','high','critical'];
@@ -15,14 +16,25 @@ export default function ComplaintFormModal({ org, complaint, onClose, onSaved })
     root_cause: '', corrective_action: '', assigned_to_name: '',
   });
   const [saving, setSaving] = useState(false);
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const [errors, setErrors] = useState({});
+  const set = (k, v) => { setForm(f => ({ ...f, [k]: v })); setErrors(e => ({ ...e, [k]: '' })); };
 
   const handleSave = async () => {
+    const errs = {};
+    if (!form.customer_name.trim()) errs.customer_name = 'Customer name is required';
+    if (!form.description.trim()) errs.description = 'Description is required';
+    if (Object.keys(errs).length) { setErrors(errs); return; }
     setSaving(true);
-    const payload = { ...form, organisation_id: org.id };
-    if (complaint?.id) await base44.entities.BRCComplaint.update(complaint.id, payload);
-    else await base44.entities.BRCComplaint.create(payload);
-    onSaved();
+    try {
+      const payload = { ...form, organisation_id: org.id };
+      if (complaint?.id) await base44.entities.BRCComplaint.update(complaint.id, payload);
+      else await base44.entities.BRCComplaint.create(payload);
+      toast.success(complaint ? 'Complaint updated' : 'Complaint logged');
+      onSaved();
+    } catch {
+      toast.error('Failed to save complaint');
+      setSaving(false);
+    }
   };
 
   return (
@@ -30,7 +42,7 @@ export default function ComplaintFormModal({ org, complaint, onClose, onSaved })
       <div className="bg-card border border-border rounded-2xl w-full max-w-lg shadow-card-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <h2 className="text-base font-semibold font-jakarta">{complaint ? 'Edit Complaint' : 'Log Complaint'}</h2>
-          <button onClick={onClose}><X className="w-4 h-4 text-muted-foreground" /></button>
+          <button onClick={onClose} aria-label="Close"><X className="w-4 h-4 text-muted-foreground" /></button>
         </div>
         <div className="p-5 space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -45,7 +57,8 @@ export default function ComplaintFormModal({ org, complaint, onClose, onSaved })
           </div>
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Customer *</label>
-            <Input className="mt-1" value={form.customer_name} onChange={e => set('customer_name', e.target.value)} placeholder="Customer name" />
+            <Input className={`mt-1 ${errors.customer_name ? 'border-destructive' : ''}`} value={form.customer_name} onChange={e => set('customer_name', e.target.value)} placeholder="Customer name" />
+            {errors.customer_name && <p className="text-xs text-destructive mt-1">{errors.customer_name}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -79,7 +92,8 @@ export default function ComplaintFormModal({ org, complaint, onClose, onSaved })
           </div>
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Description *</label>
-            <textarea className="mt-1 w-full h-20 rounded-md border border-input bg-background px-3 py-2 text-sm resize-none" value={form.description} onChange={e => set('description', e.target.value)} placeholder="Describe the complaint…" />
+            <textarea className={`mt-1 w-full h-20 rounded-md border bg-background px-3 py-2 text-sm resize-none ${errors.description ? 'border-destructive' : 'border-input'}`} value={form.description} onChange={e => set('description', e.target.value)} placeholder="Describe the complaint…" />
+            {errors.description && <p className="text-xs text-destructive mt-1">{errors.description}</p>}
           </div>
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Root Cause</label>
@@ -92,8 +106,8 @@ export default function ComplaintFormModal({ org, complaint, onClose, onSaved })
         </div>
         <div className="flex justify-end gap-2 px-5 py-4 border-t border-border">
           <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
-          <Button size="sm" onClick={handleSave} disabled={saving || !form.customer_name || !form.description}>
-            {saving ? 'Saving…' : 'Save Complaint'}
+          <Button size="sm" onClick={handleSave} disabled={saving}>
+            {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />Saving…</> : 'Save Complaint'}
           </Button>
         </div>
       </div>

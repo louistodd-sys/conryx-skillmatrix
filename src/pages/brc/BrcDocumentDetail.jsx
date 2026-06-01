@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
-import { ArrowLeft, FileText, ExternalLink, Tag, Calendar, Hash, User } from 'lucide-react';
+import { FileText, ExternalLink, Tag, Calendar, Hash, User } from 'lucide-react';
+import Breadcrumb from '@/components/Breadcrumb';
 import { Button } from '@/components/ui/button';
 
 const STATUS_COLORS = {
@@ -50,9 +51,7 @@ function BrcDocumentDetailContent() {
   if (loading) return <div className="h-64 bg-muted animate-pulse rounded-xl" />;
   if (!doc) return (
     <div className="space-y-4">
-      <Link to="/brc/documents" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="w-4 h-4" /> Back to Documents
-      </Link>
+      <Breadcrumb items={[{ label: 'Documents', href: '/brc/documents' }, { label: 'Not found' }]} />
       <p className="text-muted-foreground text-sm">Document not found.</p>
     </div>
   );
@@ -62,10 +61,11 @@ function BrcDocumentDetailContent() {
 
   return (
     <div className="space-y-6 max-w-2xl">
+      <Breadcrumb items={[
+        { label: 'Documents', href: '/brc/documents' },
+        { label: doc.title },
+      ]} />
       <div className="flex items-center gap-2 flex-wrap">
-        <Link to="/brc/documents" className="text-muted-foreground hover:text-foreground transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-        </Link>
         <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
           <FileText className="w-5 h-5 text-primary" />
           {doc.title}

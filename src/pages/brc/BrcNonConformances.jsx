@@ -25,6 +25,7 @@ function BrcNCContent() {
   const { org } = useOrganisation();
   const [ncs, setNcs] = useState([]);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -37,9 +38,11 @@ function BrcNCContent() {
   };
   useEffect(load, [org?.id]);
 
-  const filtered = ncs.filter(n =>
-    !search || (n.title || '').toLowerCase().includes(search.toLowerCase()) || (n.ref_number || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = ncs.filter(n => {
+    if (statusFilter && n.status !== statusFilter) return false;
+    if (search && !(n.title || '').toLowerCase().includes(search.toLowerCase()) && !(n.ref_number || '').toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
 
   const openCount = ncs.filter(n => n.status === 'open' || n.status === 'under_investigation').length;
   const overdueCount = ncs.filter(n => n.status === 'overdue').length;
@@ -51,7 +54,11 @@ function BrcNCContent() {
           <AlertTriangle className="w-6 h-6 text-primary" /> Non-Conformances
         </h1>
         <div className="flex items-center gap-2">
-          <div className="relative w-56">
+          <select className="h-9 rounded-md border border-input bg-background px-3 text-sm" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+            <option value="">All statuses</option>
+            {Object.entries(STATUS_CFG).map(([k, cfg]) => <option key={k} value={k}>{cfg.label}</option>)}
+          </select>
+          <div className="relative w-48">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <Input className="pl-8 h-9 text-sm" placeholder="Search NCs…" value={search} onChange={e => setSearch(e.target.value)} />
           </div>

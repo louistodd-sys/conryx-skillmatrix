@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const ITEM_TYPES = ['glass','hard_plastic','brittle_metal','ceramic','other'];
 const RISK_LEVELS = ['low','medium','high'];
@@ -15,14 +16,24 @@ export default function GlassItemFormModal({ org, item, onClose, onSaved }) {
     status: 'ok', notes: '', checked_by: '',
   });
   const [saving, setSaving] = useState(false);
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const [errors, setErrors] = useState({});
+  const set = (k, v) => { setForm(f => ({ ...f, [k]: v })); setErrors(e => ({ ...e, [k]: '' })); };
 
   const handleSave = async () => {
+    const errs = {};
+    if (!form.item_description.trim()) errs.item_description = 'Description is required';
+    if (Object.keys(errs).length) { setErrors(errs); return; }
     setSaving(true);
-    const payload = { ...form, organisation_id: org.id };
-    if (item?.id) await base44.entities.BRCGlassItem.update(item.id, payload);
-    else await base44.entities.BRCGlassItem.create(payload);
-    onSaved();
+    try {
+      const payload = { ...form, organisation_id: org.id };
+      if (item?.id) await base44.entities.BRCGlassItem.update(item.id, payload);
+      else await base44.entities.BRCGlassItem.create(payload);
+      toast.success(item ? 'Item updated' : 'Item added to register');
+      onSaved();
+    } catch {
+      toast.error('Failed to save item');
+      setSaving(false);
+    }
   };
 
   return (
@@ -30,12 +41,13 @@ export default function GlassItemFormModal({ org, item, onClose, onSaved }) {
       <div className="bg-card border border-border rounded-2xl w-full max-w-lg shadow-card-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <h2 className="text-base font-semibold font-jakarta">{item ? 'Edit Item' : 'Add to Glass Register'}</h2>
-          <button onClick={onClose}><X className="w-4 h-4 text-muted-foreground" /></button>
+          <button onClick={onClose} aria-label="Close"><X className="w-4 h-4 text-muted-foreground" /></button>
         </div>
         <div className="p-5 space-y-4">
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Description *</label>
-            <Input className="mt-1" value={form.item_description} onChange={e => set('item_description', e.target.value)} placeholder="e.g. Overhead fluorescent light cover" />
+            <Input className={`mt-1 ${errors.item_description ? 'border-destructive' : ''}`} value={form.item_description} onChange={e => set('item_description', e.target.value)} placeholder="e.g. Overhead fluorescent light cover" />
+            {errors.item_description && <p className="text-xs text-destructive mt-1">{errors.item_description}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -88,8 +100,8 @@ export default function GlassItemFormModal({ org, item, onClose, onSaved }) {
         </div>
         <div className="flex justify-end gap-2 px-5 py-4 border-t border-border">
           <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
-          <Button size="sm" onClick={handleSave} disabled={saving || !form.item_description}>
-            {saving ? 'Saving…' : 'Save Item'}
+          <Button size="sm" onClick={handleSave} disabled={saving}>
+            {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />Saving…</> : 'Save Item'}
           </Button>
         </div>
       </div>

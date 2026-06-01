@@ -18,10 +18,10 @@ import { getLatestAssessments } from '@/utils/assessmentUtils';
 // ─── Onboarding Checklist ──────────────────────────────────────────────────
 function OnboardingChecklist({ org, assessmentCount, teamCount, skillCount, hasRequiredSkills, onDismiss }) {
   const items = [
-    { label: 'Skills added to library',           done: skillCount > 0 },
-    { label: 'First team created',                done: teamCount > 0 },
-    { label: 'First assessment completed',        done: assessmentCount > 0 },
-    { label: 'Required skills assigned to a team', done: hasRequiredSkills },
+    { label: 'Skills added to library',            done: skillCount > 0,      href: '/skills-library' },
+    { label: 'First team created',                 done: teamCount > 0,       href: '/teams'          },
+    { label: 'First assessment completed',         done: assessmentCount > 0, href: '/matrix'         },
+    { label: 'Required skills assigned to a team', done: hasRequiredSkills,   href: '/teams'          },
   ];
   const doneCount = items.filter(i => i.done).length;
   const allDone = doneCount === items.length;
@@ -65,9 +65,14 @@ function OnboardingChecklist({ org, assessmentCount, teamCount, skillCount, hasR
             {item.done
               ? <CheckCircle2 className="w-4 h-4 text-rag-green shrink-0" />
               : <Circle className="w-4 h-4 text-muted-foreground/40 shrink-0" />}
-            <span className={`text-sm ${item.done ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+            <span className={`text-sm flex-1 ${item.done ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
               {item.label}
             </span>
+            {!item.done && item.href && (
+              <Link to={item.href} className="text-xs font-medium text-primary hover:underline shrink-0">
+                Start →
+              </Link>
+            )}
           </li>
         ))}
       </ul>

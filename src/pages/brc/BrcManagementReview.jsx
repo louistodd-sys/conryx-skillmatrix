@@ -18,6 +18,8 @@ function BrcManagementReviewContent() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 20;
 
   const load = () => {
     if (!org) return;
@@ -48,7 +50,7 @@ function BrcManagementReviewContent() {
         </div>
       ) : (
         <div className="space-y-3">
-          {reviews.map(r => {
+          {reviews.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(r => {
             const sc = STATUS_CFG[r.status] || STATUS_CFG.scheduled;
             return (
               <div key={r.id} className="bg-card border border-border rounded-xl p-5 flex items-start justify-between gap-4">
@@ -69,6 +71,13 @@ function BrcManagementReviewContent() {
               </div>
             );
           })}
+          {reviews.length > PAGE_SIZE && (
+            <div className="flex items-center justify-between pt-2">
+              <Button variant="outline" size="sm" onClick={() => setPage(p => p - 1)} disabled={page === 0}>Previous</Button>
+              <span className="text-xs text-muted-foreground">{page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, reviews.length)} of {reviews.length}</span>
+              <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} disabled={(page + 1) * PAGE_SIZE >= reviews.length}>Next</Button>
+            </div>
+          )}
         </div>
       )}
 

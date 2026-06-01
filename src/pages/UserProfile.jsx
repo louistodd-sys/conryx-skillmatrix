@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Trash2, UserCog, Pencil, Loader2, Clock, AlertTriangle } from 'lucide-react';
+import { Trash2, UserCog, Pencil, Loader2, Clock, AlertTriangle } from 'lucide-react';
+import Breadcrumb from '@/components/Breadcrumb';
 import { differenceInDays, parseISO } from 'date-fns';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
@@ -245,14 +246,7 @@ export default function UserProfile() {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link to="/users" className="hover:text-foreground flex items-center gap-1">
-          <ArrowLeft className="w-3.5 h-3.5" /> Users
-        </Link>
-        <span>/</span>
-        <span className="text-foreground font-medium">{profileUser.full_name}</span>
-      </div>
+      <Breadcrumb items={[{ label: 'Users', href: '/users' }, { label: profileUser.full_name }]} />
 
       {/* ── Profile Header ── */}
       <div className="bg-card border border-border rounded-xl p-5">

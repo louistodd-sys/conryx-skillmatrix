@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Users, Plus, Trash2, BookOpen, ArrowLeft, Settings2, Grid3X3, BarChart3, AlertTriangle, X, Loader2 } from 'lucide-react';
+import { Users, Plus, Trash2, BookOpen, Settings2, Grid3X3, BarChart3, AlertTriangle, X, Loader2 } from 'lucide-react';
+import Breadcrumb from '@/components/Breadcrumb';
 import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
@@ -138,14 +139,7 @@ export default function TeamDetail() {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link to="/teams" className="hover:text-foreground flex items-center gap-1">
-          <ArrowLeft className="w-3.5 h-3.5" /> Teams
-        </Link>
-        <span>/</span>
-        <span className="text-foreground font-medium">{team.name}</span>
-      </div>
+      <Breadcrumb items={[{ label: 'Teams', href: '/teams' }, { label: team.name }]} />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

@@ -24,6 +24,8 @@ function BrcPestControlContent() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 20;
 
   const load = () => {
     if (!org) return;
@@ -72,7 +74,7 @@ function BrcPestControlContent() {
         </div>
       ) : (
         <div className="space-y-3">
-          {visits.map(v => {
+          {visits.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map(v => {
             const sc = STATUS_CFG[v.status] || STATUS_CFG.scheduled;
             const ac = ACTIVITY_CFG[v.activity_level] || ACTIVITY_CFG.none;
             return (
@@ -99,6 +101,13 @@ function BrcPestControlContent() {
               </div>
             );
           })}
+          {visits.length > PAGE_SIZE && (
+            <div className="flex items-center justify-between pt-2">
+              <Button variant="outline" size="sm" onClick={() => setPage(p => p - 1)} disabled={page === 0}>Previous</Button>
+              <span className="text-xs text-muted-foreground">{page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, visits.length)} of {visits.length}</span>
+              <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} disabled={(page + 1) * PAGE_SIZE >= visits.length}>Next</Button>
+            </div>
+          )}
         </div>
       )}
 

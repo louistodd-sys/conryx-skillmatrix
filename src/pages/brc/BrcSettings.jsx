@@ -134,9 +134,8 @@ function BrcSettingsContent() {
             {seeding ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Seeding…</> : <><Database className="w-3.5 h-3.5 mr-1.5" /> Seed Demo Data</>}
           </Button>
           <Button
-            variant="ghost"
+            variant="destructive"
             size="sm"
-            className="text-muted-foreground"
             disabled={seeding}
             onClick={async () => {
               if (!confirm('This will delete and replace all existing BRC documents and clause statuses. Continue?')) return;

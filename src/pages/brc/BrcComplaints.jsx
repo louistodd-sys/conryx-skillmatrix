@@ -24,6 +24,7 @@ function BrcComplaintsContent() {
   const { org } = useOrganisation();
   const [complaints, setComplaints] = useState([]);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -36,9 +37,11 @@ function BrcComplaintsContent() {
   };
   useEffect(load, [org?.id]);
 
-  const filtered = complaints.filter(c =>
-    !search || (c.customer_name || '').toLowerCase().includes(search.toLowerCase()) || (c.ref_number || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = complaints.filter(c => {
+    if (statusFilter && c.status !== statusFilter) return false;
+    if (search && !(c.customer_name || '').toLowerCase().includes(search.toLowerCase()) && !(c.ref_number || '').toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-5">
@@ -47,7 +50,11 @@ function BrcComplaintsContent() {
           <MessageSquare className="w-6 h-6 text-primary" /> Customer Complaint Register
         </h1>
         <div className="flex items-center gap-2">
-          <div className="relative w-56">
+          <select className="h-9 rounded-md border border-input bg-background px-3 text-sm" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+            <option value="">All statuses</option>
+            {Object.entries(STATUS_CFG).map(([k, cfg]) => <option key={k} value={k}>{cfg.label}</option>)}
+          </select>
+          <div className="relative w-48">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <Input className="pl-8 h-9 text-sm" placeholder="Search complaints…" value={search} onChange={e => setSearch(e.target.value)} />
           </div>

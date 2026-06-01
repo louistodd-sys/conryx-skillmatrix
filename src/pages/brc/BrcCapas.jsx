@@ -4,7 +4,8 @@ import { base44 } from '@/api/base44Client';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, ClipboardList, Search, CheckCircle2, Clock } from 'lucide-react';
+import { Plus, ClipboardList, Search, CheckCircle2, Clock, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import CAPAFormModal from '@/components/brc/CAPAFormModal';
 
 const STATUS_CFG = {
@@ -90,7 +91,11 @@ function BrcCapasContent() {
                     <td className="px-4 py-3 text-xs font-mono text-muted-foreground">{c.ref_number || '—'}</td>
                     <td className="px-4 py-3">
                       <p className="text-sm font-medium text-foreground">{c.title}</p>
-                      {c.nc_ref && <p className="text-xs text-muted-foreground">NC: {c.nc_ref}</p>}
+                      {c.nc_ref && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          NC: <Link to="/brc/non-conformances" className="text-primary hover:underline inline-flex items-center gap-0.5">{c.nc_ref} <ExternalLink className="w-3 h-3" /></Link>
+                        </p>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground hidden sm:table-cell">{c.responsible_name || '—'}</td>
                     <td className="px-4 py-3">

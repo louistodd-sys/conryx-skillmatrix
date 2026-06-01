@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import SiteFooter from '@/components/SiteFooter';
 import { useState, useEffect } from 'react';
 import {
@@ -55,7 +55,7 @@ const managerNav = [
   {
     section: 'People',
     items: [
-      { label: 'My Team',        icon: FolderKanban,    path: '/teams' },
+      { label: 'Teams',           icon: FolderKanban,    path: '/teams' },
       { label: 'People',         icon: Users2,          path: '/people' },
     ],
   },
@@ -189,6 +189,7 @@ export default function Layout() {
   const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
   const { org, user } = useOrganisation();
+  const navigate = useNavigate();
 
   const role = user?.role || 'viewer';
 
@@ -211,6 +212,9 @@ export default function Layout() {
   const handleModuleSwitch = (mod) => {
     setActiveModule(mod);
     sessionStorage.setItem('activeModule', mod);
+    // Navigate to the module's home to avoid URL/nav mismatch
+    if (mod === MODULE_BRC_COMPLIANCE) navigate('/brc');
+    else navigate('/');
   };
 
   // Determine which nav to show based on active module + role
@@ -321,9 +325,10 @@ export default function Layout() {
               </p>
               <div className="space-y-0.5">
                 {group.items.map(item => {
+                  // '/brc' should only match exactly to avoid highlighting it on every BRC sub-route
                   const isActive =
                     location.pathname === item.path ||
-                    (item.path !== '/' && location.pathname.startsWith(item.path));
+                    (item.path !== '/' && item.path !== '/brc' && location.pathname.startsWith(item.path));
                   return (
                     <NavItem
                       key={item.path}

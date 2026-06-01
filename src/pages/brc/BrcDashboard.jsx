@@ -36,6 +36,7 @@ function BrcDashboardContent() {
   const [skills,      setSkills]      = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [recomputing, setRecomputing] = useState(false);
+  const [recomputeDone, setRecomputeDone] = useState(false);
   const [actionSummary, setActionSummary] = useState({ critical: 0, warning: 0 });
 
   const orgId  = org?.id;
@@ -84,9 +85,12 @@ function BrcDashboardContent() {
 
   const handleRecompute = async () => {
     setRecomputing(true);
+    setRecomputeDone(false);
     await base44.functions.invoke('recomputeReadinessScore', { organisation_id: orgId });
     await refreshOrg();
     setRecomputing(false);
+    setRecomputeDone(true);
+    setTimeout(() => setRecomputeDone(false), 2500);
   };
 
   const standardLabel = org?.brc_standard ? BRC_STANDARD_LABELS[org.brc_standard] || org.brc_standard : null;
@@ -117,7 +121,7 @@ function BrcDashboardContent() {
           disabled={recomputing || !orgId}
         >
           <RefreshCw className={`w-3.5 h-3.5 ${recomputing ? 'animate-spin' : ''}`} />
-          {recomputing ? 'Recomputing…' : 'Recompute Score'}
+          {recomputing ? 'Recomputing…' : recomputeDone ? '✓ Score updated' : 'Recompute Score'}
         </Button>
       </div>
 

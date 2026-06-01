@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const AUDIT_TYPES = ['internal', 'third_party', 'regulatory', 'supplier'];
 const STATUSES = ['planned', 'in_progress', 'completed', 'overdue'];
@@ -14,14 +15,25 @@ export default function AuditFormModal({ org, audit, onClose, onSaved }) {
     status: 'planned', overall_rating: '', summary: '', nc_count: 0,
   });
   const [saving, setSaving] = useState(false);
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const [errors, setErrors] = useState({});
+  const set = (k, v) => { setForm(f => ({ ...f, [k]: v })); setErrors(e => ({ ...e, [k]: '' })); };
 
   const handleSave = async () => {
+    const errs = {};
+    if (!form.title.trim()) errs.title = 'Title is required';
+    if (!form.scheduled_date) errs.scheduled_date = 'Scheduled date is required';
+    if (Object.keys(errs).length) { setErrors(errs); return; }
     setSaving(true);
-    const payload = { ...form, organisation_id: org.id };
-    if (audit?.id) await base44.entities.BRCAudit.update(audit.id, payload);
-    else await base44.entities.BRCAudit.create(payload);
-    onSaved();
+    try {
+      const payload = { ...form, organisation_id: org.id };
+      if (audit?.id) await base44.entities.BRCAudit.update(audit.id, payload);
+      else await base44.entities.BRCAudit.create(payload);
+      toast.success(audit ? 'Audit updated' : 'Audit created');
+      onSaved();
+    } catch {
+      toast.error('Failed to save audit');
+      setSaving(false);
+    }
   };
 
   return (
@@ -34,7 +46,8 @@ export default function AuditFormModal({ org, audit, onClose, onSaved }) {
         <div className="p-5 space-y-4">
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Title *</label>
-            <Input className="mt-1" value={form.title} onChange={e => set('title', e.target.value)} placeholder="e.g. Annual Internal Audit 2026" />
+            <Input className={`mt-1 ${errors.title ? 'border-destructive' : ''}`} value={form.title} onChange={e => set('title', e.target.value)} placeholder="e.g. Annual Internal Audit 2026" />
+            {errors.title && <p className="text-xs text-destructive mt-1">{errors.title}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -53,7 +66,8 @@ export default function AuditFormModal({ org, audit, onClose, onSaved }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Scheduled Date *</label>
-              <Input type="date" className="mt-1" value={form.scheduled_date} onChange={e => set('scheduled_date', e.target.value)} />
+              <Input type="date" className={`mt-1 ${errors.scheduled_date ? 'border-destructive' : ''}`} value={form.scheduled_date} onChange={e => set('scheduled_date', e.target.value)} />
+              {errors.scheduled_date && <p className="text-xs text-destructive mt-1">{errors.scheduled_date}</p>}
             </div>
             <div>
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Completed Date</label>
@@ -82,8 +96,8 @@ export default function AuditFormModal({ org, audit, onClose, onSaved }) {
         </div>
         <div className="flex justify-end gap-2 px-5 py-4 border-t border-border">
           <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
-          <Button size="sm" onClick={handleSave} disabled={saving || !form.title || !form.scheduled_date}>
-            {saving ? 'Saving…' : 'Save Audit'}
+          <Button size="sm" onClick={handleSave} disabled={saving}>
+            {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />Saving…</> : 'Save Audit'}
           </Button>
         </div>
       </div>

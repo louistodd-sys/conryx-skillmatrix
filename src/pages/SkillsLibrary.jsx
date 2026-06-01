@@ -9,6 +9,7 @@ import EmptyState from '@/components/EmptyState';
 import SkillFormModal from '@/components/SkillFormModal';
 import CategoryFormModal from '@/components/CategoryFormModal';
 import TemplatePickerModal from '@/components/TemplatePickerModal';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function SkillsLibrary() {
   const { org } = useOrganisation();
@@ -22,6 +23,7 @@ export default function SkillsLibrary() {
   const [editingSkill, setEditingSkill] = useState(null);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   useEffect(() => {
     if (org) loadData();
@@ -50,8 +52,8 @@ export default function SkillsLibrary() {
   };
 
   const handleDelete = async (skill) => {
-    if (!confirm('Are you sure? This skill will be permanently deleted.')) return;
     await base44.entities.Skill.delete(skill.id);
+    setConfirmDelete(null);
     loadData();
   };
 
@@ -163,7 +165,7 @@ export default function SkillsLibrary() {
                           <Pencil className="w-3.5 h-3.5" />
                         </Button>
 
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(skill)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setConfirmDelete(skill)}>
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </div>
@@ -199,6 +201,15 @@ export default function SkillsLibrary() {
           existingCategories={categories}
           onClose={() => setShowTemplates(false)}
           onImported={loadData}
+        />
+      )}
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Delete Skill"
+          description={`"${confirmDelete.name}" will be permanently deleted. This cannot be undone.`}
+          confirmLabel="Delete"
+          onConfirm={() => handleDelete(confirmDelete)}
+          onCancel={() => setConfirmDelete(null)}
         />
       )}
     </div>

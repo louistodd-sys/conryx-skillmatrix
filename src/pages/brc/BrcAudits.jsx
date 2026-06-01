@@ -25,6 +25,7 @@ function BrcAuditsContent() {
   const { org } = useOrganisation();
   const [audits, setAudits] = useState([]);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -37,9 +38,11 @@ function BrcAuditsContent() {
   };
   useEffect(load, [org?.id]);
 
-  const filtered = audits.filter(a =>
-    !search || a.title.toLowerCase().includes(search.toLowerCase()) || (a.lead_auditor_name || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = audits.filter(a => {
+    if (statusFilter && a.status !== statusFilter) return false;
+    if (search && !a.title.toLowerCase().includes(search.toLowerCase()) && !(a.lead_auditor_name || '').toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-5">
@@ -48,7 +51,11 @@ function BrcAuditsContent() {
           <ScrollText className="w-6 h-6 text-primary" /> Internal Audits
         </h1>
         <div className="flex items-center gap-2">
-          <div className="relative w-56">
+          <select className="h-9 rounded-md border border-input bg-background px-3 text-sm" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+            <option value="">All statuses</option>
+            {Object.entries(STATUS_CFG).map(([k, cfg]) => <option key={k} value={k}>{cfg.label}</option>)}
+          </select>
+          <div className="relative w-48">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <Input className="pl-8 h-9 text-sm" placeholder="Search audits…" value={search} onChange={e => setSearch(e.target.value)} />
           </div>
