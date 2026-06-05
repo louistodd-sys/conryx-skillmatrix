@@ -47,9 +47,11 @@ import BrcAuditChecklist from './pages/brc/BrcAuditChecklist';
 import BrcDocumentDetail from './pages/brc/BrcDocumentDetail';
 import BrcGuide from './pages/brc/BrcGuide';
 import { BrcAuditDetail, BrcNonConformanceDetail, BrcSupplierDetail, BrcCalibrationDetail, BrcComplaintDetail } from './pages/brc/BrcStub';
+import { Navigate } from 'react-router-dom';
+import LoginPage from './lib/LoginPage';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, isAuthenticated, authError } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -64,10 +66,6 @@ const AuthenticatedApp = () => {
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
     }
   }
 
@@ -75,6 +73,8 @@ const AuthenticatedApp = () => {
   return (
     <>
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        {!isAuthenticated && <Route path="*" element={<Navigate to="/login" replace />} />}
         <Route path="/onboarding" element={<Onboarding />} />
         {/* Legal pages — accessible without sidebar layout */}
         <Route path="/privacy" element={<PrivacyPolicy />} />

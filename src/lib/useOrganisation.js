@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabaseClient';
+import { useAuth } from '@/lib/AuthContext';
 
 let cachedOrg = null;
 let cachedUser = null;
 
 export default function useOrganisation() {
+  const { user: authUser } = useAuth();
   const [org, setOrg] = useState(cachedOrg);
   const [user, setUser] = useState(cachedUser);
   const [loading, setLoading] = useState(!cachedOrg);
 
   useEffect(() => {
+    if (!authUser) return;
+
     if (cachedOrg && cachedUser) {
       setOrg(cachedOrg);
       setUser(cachedUser);
@@ -19,15 +23,27 @@ export default function useOrganisation() {
 
     async function load() {
       try {
-        const me = await base44.auth.me();
+        // Fetch profile from public.users
+        const { data: profile, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+        if (error) throw error;
+
+        const me = { ...authUser, ...profile };
         cachedUser = me;
         setUser(me);
 
         if (me?.organisation_id) {
-          const orgs = await base44.entities.Organisation.filter({ id: me.organisation_id });
-          if (orgs.length > 0) {
-            cachedOrg = orgs[0];
-            setOrg(orgs[0]);
+          const { data: orgData } = await supabase
+            .from('organisations')
+            .select('*')
+            .eq('id', me.organisation_id)
+            .single();
+          if (orgData) {
+            cachedOrg = orgData;
+            setOrg(orgData);
           }
         }
       } catch (_) {
@@ -36,20 +52,30 @@ export default function useOrganisation() {
       setLoading(false);
     }
     load();
-  }, []);
+  }, [authUser]);
 
   const refreshOrg = async () => {
     if (user?.organisation_id) {
-      const orgs = await base44.entities.Organisation.filter({ id: user.organisation_id });
-      if (orgs.length > 0) {
-        cachedOrg = orgs[0];
-        setOrg(orgs[0]);
+      const { data: orgData } = await supabase
+        .from('organisations')
+        .select('*')
+        .eq('id', user.organisation_id)
+        .single();
+      if (orgData) {
+        cachedOrg = orgData;
+        setOrg(orgData);
       }
     }
   };
 
   const refreshUser = async () => {
-    const me = await base44.auth.me();
+    if (!authUser) return;
+    const { data: profile } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', authUser.id)
+      .single();
+    const me = { ...authUser, ...profile };
     cachedUser = me;
     setUser(me);
   };
