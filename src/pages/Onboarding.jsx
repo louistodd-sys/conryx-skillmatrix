@@ -71,18 +71,26 @@ export default function Onboarding() {
   const handleStep1 = async () => {
     if (!orgName.trim()) return;
     setLoading(true);
-    const newOrg = await apiClient.entities.Organisation.create({
-      name: orgName.trim(),
-      slug: orgName.trim().toLowerCase().replace(/[^a-z0-9]/g, '-'),
-      timezone,
-      subscription_tier: 'free',
-      onboarding_step: 2,
-    });
-    setOrgId(newOrg.id);
-    await apiClient.auth.updateMe({ organisation_id: newOrg.id, role: 'admin', status: 'active' });
-    await refreshUser();
+    try {
+      const { data } = await apiClient.functions.invoke('onboarding', {
+        org_name: orgName.trim(),
+        user_full_name: user?.full_name || null,
+      });
+      if (!data?.organisation) throw new Error('Onboarding failed — no organisation returned');
+      const newOrg = data.organisation;
+      // Patch timezone and slug via admin update now that org exists
+      await apiClient.entities.Organisation.update(newOrg.id, {
+        slug: orgName.trim().toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        timezone,
+        onboarding_step: 2,
+      });
+      setOrgId(newOrg.id);
+      await refreshUser();
+      setStep(2);
+    } catch (err) {
+      toast.error(err.message || 'Could not create organisation — please try again.');
+    }
     setLoading(false);
-    setStep(2);
   };
 
   const handleStep2 = async () => {

@@ -56,6 +56,15 @@ function makeEntity(tableName) {
       if (error) throw error
       return data
     },
+    async bulkCreate(records) {
+      if (!records || records.length === 0) return []
+      const { data, error } = await supabase
+        .from(tableName)
+        .insert(records)
+        .select()
+      if (error) throw error
+      return data ?? []
+    },
   }
 }
 
