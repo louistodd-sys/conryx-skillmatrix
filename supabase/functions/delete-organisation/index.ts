@@ -1,8 +1,5 @@
-import Stripe from 'https://esm.sh/stripe@14?target=deno'
 import { corsHeaders } from '../_shared/cors.ts'
 import { getUser, adminClient } from '../_shared/auth.ts'
-
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!)
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -39,12 +36,19 @@ Deno.serve(async (req) => {
       })
     }
 
-    // 1. Cancel & delete Stripe subscription and customer
-    if (org.stripe_subscription_id) {
-      try { await stripe.subscriptions.cancel(org.stripe_subscription_id) } catch (_) {}
-    }
-    if (org.stripe_customer_id) {
-      try { await stripe.customers.del(org.stripe_customer_id) } catch (_) {}
+    // 1. Cancel & delete Stripe subscription and customer (skipped if no key)
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
+    if (stripeKey && (org.stripe_subscription_id || org.stripe_customer_id)) {
+      try {
+        const { default: Stripe } = await import('https://esm.sh/stripe@14?target=deno')
+        const stripe = new Stripe(stripeKey)
+        if (org.stripe_subscription_id) {
+          try { await stripe.subscriptions.cancel(org.stripe_subscription_id) } catch (_) {}
+        }
+        if (org.stripe_customer_id) {
+          try { await stripe.customers.del(org.stripe_customer_id) } catch (_) {}
+        }
+      } catch (_) {}
     }
 
     // 2. Cascade delete all entity data for this organisation
