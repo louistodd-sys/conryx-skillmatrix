@@ -17,24 +17,23 @@ module.exports = {
         jakarta: ['var(--font-jakarta)'],
       },
       fontSize: {
-        // Enforce sensible minimum — nothing below 11px in the design system
-        '2xs': ['0.6875rem', { lineHeight: '1rem' }],   // 11px — absolute floor
-        'xs':  ['0.75rem',   { lineHeight: '1.125rem' }], // 12px
-        'sm':  ['0.8125rem', { lineHeight: '1.25rem' }],  // 13px — comfortable min for body
-        'base':['0.875rem',  { lineHeight: '1.5rem' }],   // 14px — default body
-        'md':  ['0.9375rem', { lineHeight: '1.5rem' }],   // 15px
-        'lg':  ['1rem',      { lineHeight: '1.6rem' }],   // 16px
-        'xl':  ['1.125rem',  { lineHeight: '1.75rem' }],  // 18px
-        '2xl': ['1.25rem',   { lineHeight: '1.875rem' }], // 20px
-        '3xl': ['1.5rem',    { lineHeight: '2rem' }],     // 24px
-        '4xl': ['1.875rem',  { lineHeight: '2.25rem' }],  // 30px
+        '2xs': ['0.6875rem', { lineHeight: '1rem' }],
+        'xs':  ['0.75rem',   { lineHeight: '1.125rem' }],
+        'sm':  ['0.8125rem', { lineHeight: '1.25rem' }],
+        'base':['0.875rem',  { lineHeight: '1.5rem' }],
+        'md':  ['0.9375rem', { lineHeight: '1.5rem' }],
+        'lg':  ['1rem',      { lineHeight: '1.6rem' }],
+        'xl':  ['1.125rem',  { lineHeight: '1.75rem' }],
+        '2xl': ['1.25rem',   { lineHeight: '1.875rem' }],
+        '3xl': ['1.5rem',    { lineHeight: '2rem' }],
+        '4xl': ['1.875rem',  { lineHeight: '2.25rem' }],
       },
       borderRadius: {
-        lg: 'var(--radius)',                        // 12px
-        md: 'calc(var(--radius) - 3px)',            // 9px
-        sm: 'calc(var(--radius) - 6px)',            // 6px
-        xl: 'calc(var(--radius) + 4px)',            // 16px
-        '2xl': 'calc(var(--radius) + 8px)',         // 20px
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 3px)',
+        sm: 'calc(var(--radius) - 6px)',
+        xl: 'calc(var(--radius) + 4px)',
+        '2xl': 'calc(var(--radius) + 8px)',
       },
       colors: {
         background: 'hsl(var(--background))',
