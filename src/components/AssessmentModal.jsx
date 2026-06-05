@@ -12,7 +12,11 @@ export default function AssessmentModal({ userId, userName, skill, existingAsses
   const [form, setForm] = useState({
     proficiency_level: existingAssessment?.proficiency_level != null ? Number(existingAssessment.proficiency_level) : (skill.scale_type === 'binary' ? 1 : 3),
     assessed_date: existingAssessment?.assessed_date || new Date().toISOString().split('T')[0],
-    expiry_date: existingAssessment?.expiry_date || '',
+    expiry_date: existingAssessment?.expiry_date || (
+      skill.requires_expiry
+        ? (() => { const d = new Date(); d.setFullYear(d.getFullYear() + 1); return d.toISOString().split('T')[0]; })()
+        : ''
+    ),
     notes: existingAssessment?.notes || '',
     assessed_by_name: existingAssessment?.assessed_by_name || user?.full_name || '',
   });
@@ -76,7 +80,7 @@ export default function AssessmentModal({ userId, userName, skill, existingAsses
     }).catch(() => {}); // Non-blocking — don't fail the assessment if audit fails
 
     setSaving(false);
-    onSaved();
+    onSaved(assessment);
     onClose();
   };
 
@@ -162,6 +166,25 @@ export default function AssessmentModal({ userId, userName, skill, existingAsses
               onChange={e => { setForm({ ...form, expiry_date: e.target.value }); setDateError(''); }}
               className={`mt-1 ${dateError ? 'border-destructive' : ''}`}
             />
+            <div className="flex gap-2 mt-1.5">
+              {[['6mo', 6], ['1yr', 12], ['2yr', 24]].map(([label, months]) => (
+                <Button
+                  key={label}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-7 px-2"
+                  onClick={() => {
+                    const d = new Date(form.assessed_date || new Date());
+                    d.setMonth(d.getMonth() + months);
+                    setForm(f => ({ ...f, expiry_date: d.toISOString().split('T')[0] }));
+                    setDateError('');
+                  }}
+                >
+                  +{label}
+                </Button>
+              ))}
+            </div>
             {dateError && <p className="text-xs text-destructive mt-1">{dateError}</p>}
           </div>
 

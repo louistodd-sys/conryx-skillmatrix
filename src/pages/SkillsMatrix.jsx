@@ -12,10 +12,10 @@ import { getLatestAssessments } from '@/utils/assessmentUtils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // ─── Layout constants ──────────────────────────────────────────────────────
-const CELL  = 52;  // skill cell px (width + height)
-const NAME  = 224; // name column width px
-const COL   = 62;  // skill column width px
-const CAT_H = 44;  // category header row height px
+const CELL  = 44;  // skill cell px (width + height)
+const NAME  = 180; // name column width px
+const COL   = 52;  // skill column width px
+const CAT_H = 36;  // category header row height px
 
 // ─── Status colour palette ─────────────────────────────────────────────────
 const S = {
@@ -196,6 +196,11 @@ export default function SkillsMatrix() {
       : 0;
   });
 
+  // Overall coverage across all visible skills
+  const overallCoverage = allVisibleSkills.length > 0 && uniqueMembers.length > 0
+    ? Math.round(allVisibleSkills.reduce((sum, s) => sum + (skillCompliance[s.id] ?? 0), 0) / allVisibleSkills.length)
+    : null;
+
   // Shared border styles
   const catBorder = (ci) => ci > 0 ? '3px solid white' : '1px solid hsl(var(--border))';
   const cellBorder = (si, ci) =>
@@ -259,6 +264,15 @@ export default function SkillsMatrix() {
           />
           Gaps / expiring only
         </label>
+
+        {overallCoverage !== null && (
+          <span
+            className="ml-auto text-sm font-semibold px-3 py-1 rounded-full"
+            style={pctStyle(overallCoverage)}
+          >
+            {overallCoverage}% overall coverage
+          </span>
+        )}
       </div>
 
       {/* ── Desktop matrix ── */}
@@ -270,7 +284,6 @@ export default function SkillsMatrix() {
                 borderCollapse: 'separate',
                 borderSpacing: 0,
                 width: 'max-content',
-                minWidth: '100%',
               }}
             >
               <thead>
@@ -282,7 +295,9 @@ export default function SkillsMatrix() {
                       left: 0,
                       top: 0,
                       zIndex: 40,
+                      width: NAME,
                       minWidth: NAME,
+                      maxWidth: NAME,
                       height: CAT_H,
                       padding: '0 16px',
                       background: 'hsl(var(--muted) / 0.6)',
@@ -330,7 +345,9 @@ export default function SkillsMatrix() {
                       left: 0,
                       top: CAT_H,
                       zIndex: 40,
+                      width: NAME,
                       minWidth: NAME,
+                      maxWidth: NAME,
                       background: 'hsl(var(--muted) / 0.6)',
                       borderBottom: '2px solid hsl(var(--border))',
                       borderRight: '2px solid hsl(var(--border))',
@@ -340,13 +357,14 @@ export default function SkillsMatrix() {
                     cat.skills.map((skill, si) => (
                       <th
                         key={skill.id}
+                        className="hover:bg-slate-100 transition-colors"
                         style={{
                           position: 'sticky',
                           top: CAT_H,
                           zIndex: 10,
                           width: COL,
                           minWidth: COL,
-                          height: 152,
+                          height: 110,
                           background: '#f8fafc',
                           borderBottom: '2px solid hsl(var(--border))',
                           borderLeft: cellBorder(si, ci),
@@ -358,28 +376,28 @@ export default function SkillsMatrix() {
                           <TooltipTrigger asChild>
                             <button
                               className="group flex flex-col items-center w-full"
-                              style={{ height: 140 }}
+                              style={{ height: 98 }}
                               onClick={() => setBulkSkill(skill)}
                             >
                               <div
                                 style={{
                                   writingMode: 'vertical-lr',
                                   transform: 'rotate(180deg)',
-                                  fontSize: 13,
+                                  fontSize: 12,
                                   fontWeight: 600,
                                   color: 'hsl(var(--foreground))',
                                   flex: 1,
                                   overflow: 'hidden',
                                   lineHeight: 1.35,
-                                  maxHeight: 118,
+                                  maxHeight: 78,
                                   paddingBottom: 2,
                                 }}
                               >
                                 {skill.name}
                               </div>
                               <Users
-                                style={{ width: 14, height: 14, color: 'hsl(var(--muted-foreground))', marginTop: 4, flexShrink: 0 }}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                style={{ width: 13, height: 13, color: 'hsl(var(--muted-foreground))', marginTop: 4, flexShrink: 0 }}
+                                className="opacity-30 group-hover:opacity-100 transition-opacity"
                               />
                             </button>
                           </TooltipTrigger>
@@ -409,6 +427,14 @@ export default function SkillsMatrix() {
 
                 {uniqueMembers.map((member, ri) => {
                   const rowBg = ri % 2 === 0 ? 'hsl(var(--card))' : 'hsl(var(--muted) / 0.12)';
+                  // RAG summary counts for this member
+                  let mg = 0, ma = 0, mr = 0;
+                  allVisibleSkills.forEach(s => {
+                    const st = getRAGStatus(currentAssessments[`${member.user_id}-${s.id}`], s, getReq(member.user_id, s.id));
+                    if (st === 'green') mg++;
+                    else if (st === 'amber') ma++;
+                    else if (st === 'red') mr++;
+                  });
                   return (
                     <tr key={member.user_id}>
                       {/* Sticky name */}
@@ -417,23 +443,27 @@ export default function SkillsMatrix() {
                           position: 'sticky',
                           left: 0,
                           zIndex: 10,
+                          width: NAME,
                           minWidth: NAME,
-                          height: CELL + 8,
-                          padding: '0 16px',
+                          maxWidth: NAME,
+                          padding: '6px 16px',
                           backgroundColor: rowBg,
                           borderBottom: '1px solid hsl(var(--border))',
                           borderRight: '2px solid hsl(var(--border))',
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        <span style={{ fontSize: 15, fontWeight: 600, color: 'hsl(var(--foreground))' }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: 'hsl(var(--foreground))' }}>
                           {member.user_name || 'Unknown'}
                         </span>
-                        {member.is_managed_member && (
-                          <span style={{ display: 'block', fontSize: 10, color: 'hsl(var(--muted-foreground))', fontWeight: 400, marginTop: 1 }}>
-                            Managed
-                          </span>
-                        )}
+                        <div style={{ display: 'flex', gap: 4, marginTop: 3 }}>
+                          {mg > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#15803d', background: '#dcfce7', borderRadius: 4, padding: '1px 5px' }}>{mg}✓</span>}
+                          {ma > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#92400e', background: '#fef3c7', borderRadius: 4, padding: '1px 5px' }}>{ma}!</span>}
+                          {mr > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#991b1b', background: '#fee2e2', borderRadius: 4, padding: '1px 5px' }}>{mr}✗</span>}
+                          {member.is_managed_member && (
+                            <span style={{ fontSize: 10, color: 'hsl(var(--muted-foreground))', fontWeight: 400 }}>Managed</span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Skill cells */}
@@ -466,7 +496,7 @@ export default function SkillsMatrix() {
                                       height: CELL,
                                       background: S[status].bg,
                                       color: S[status].fg,
-                                      fontSize: 22,
+                                      fontSize: 17,
                                       fontWeight: 800,
                                       display: 'inline-flex',
                                       alignItems: 'center',
@@ -518,7 +548,9 @@ export default function SkillsMatrix() {
                         position: 'sticky',
                         left: 0,
                         zIndex: 10,
+                        width: NAME,
                         minWidth: NAME,
+                        maxWidth: NAME,
                         padding: '8px 16px',
                         background: 'hsl(var(--muted) / 0.5)',
                         borderRight: '2px solid hsl(var(--border))',
@@ -691,7 +723,18 @@ export default function SkillsMatrix() {
           existingAssessment={assessingCell.assessment}
           orgId={org.id}
           onClose={() => setAssessingCell(null)}
-          onSaved={loadData}
+          onSaved={(savedAssessment) => {
+            // Optimistically update the local assessments state so the cell reflects
+            // the change immediately, before the background reload completes
+            setAssessments(prev => {
+              const without = prev.filter(a =>
+                !(a.user_id === savedAssessment.user_id && a.skill_id === savedAssessment.skill_id)
+              );
+              return [...without, savedAssessment];
+            });
+            setAssessingCell(null);
+            loadData(); // background refresh to stay in sync
+          }}
         />
       )}
 
