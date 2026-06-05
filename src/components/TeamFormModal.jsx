@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,9 +16,9 @@ export default function TeamFormModal({ team, orgId, onClose, onSaved }) {
     e.preventDefault();
     setSaving(true);
     if (team) {
-      await base44.entities.Team.update(team.id, form);
+      await apiClient.entities.Team.update(team.id, form);
     } else {
-      await base44.entities.Team.create({ ...form, organisation_id: orgId });
+      await apiClient.entities.Team.create({ ...form, organisation_id: orgId });
     }
     setSaving(false);
     onSaved();

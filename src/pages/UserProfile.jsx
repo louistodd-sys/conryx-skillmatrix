@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Trash2, UserCog, Pencil, Loader2, Clock, AlertTriangle } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
 import { differenceInDays, parseISO } from 'date-fns';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -77,18 +77,18 @@ export default function UserProfile() {
 
   async function loadData() {
     const [s, c, a, tm, t, trs] = await Promise.all([
-      base44.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
-      base44.entities.SkillCategory.filter({ organisation_id: org.id }),
-      base44.entities.SkillAssessment.filter({ organisation_id: org.id, user_id: userId }),
-      base44.entities.TeamMember.filter({ organisation_id: org.id, user_id: userId }),
-      base44.entities.Team.filter({ organisation_id: org.id }),
-      base44.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
+      apiClient.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
+      apiClient.entities.SkillCategory.filter({ organisation_id: org.id }),
+      apiClient.entities.SkillAssessment.filter({ organisation_id: org.id, user_id: userId }),
+      apiClient.entities.TeamMember.filter({ organisation_id: org.id, user_id: userId }),
+      apiClient.entities.Team.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
     ]);
 
     // Resolve: registered User or managed employee?
     let resolved = null;
     try {
-      const users = await base44.entities.User.filter({ id: userId });
+      const users = await apiClient.entities.User.filter({ id: userId });
       resolved = users[0] || null;
     } catch (_) {}
     let managed  = false;
@@ -130,8 +130,8 @@ export default function UserProfile() {
   const handleRoleChange = async (newRole) => {
     if (!profileUser || changingRole) return;
     setChangingRole(true);
-    await base44.entities.User.update(userId, { role: newRole });
-    await base44.entities.AuditLogEntry.create({
+    await apiClient.entities.User.update(userId, { role: newRole });
+    await apiClient.entities.AuditLogEntry.create({
       organisation_id: org.id,
       actor_user_id:   currentUser?.id,
       actor_display:   currentUser?.full_name,
@@ -148,17 +148,17 @@ export default function UserProfile() {
   // ── Delete ─────────────────────────────────────────────────────────────────
   const handleDelete = async () => {
     const [userAssessments, userMemberships] = await Promise.all([
-      base44.entities.SkillAssessment.filter({ organisation_id: org.id, user_id: userId }),
-      base44.entities.TeamMember.filter({ organisation_id: org.id, user_id: userId }),
+      apiClient.entities.SkillAssessment.filter({ organisation_id: org.id, user_id: userId }),
+      apiClient.entities.TeamMember.filter({ organisation_id: org.id, user_id: userId }),
     ]);
     await Promise.all([
-      ...userAssessments.map(a  => base44.entities.SkillAssessment.delete(a.id)),
-      ...userMemberships.map(m => base44.entities.TeamMember.delete(m.id)),
+      ...userAssessments.map(a  => apiClient.entities.SkillAssessment.delete(a.id)),
+      ...userMemberships.map(m => apiClient.entities.TeamMember.delete(m.id)),
     ]);
     if (!isManagedMember) {
-      try { await base44.entities.User.delete(userId); } catch (_) {}
+      try { await apiClient.entities.User.delete(userId); } catch (_) {}
     }
-    await base44.entities.AuditLogEntry.create({
+    await apiClient.entities.AuditLogEntry.create({
       organisation_id: org.id,
       actor_user_id:   currentUser?.id,
       actor_display:   currentUser?.full_name,

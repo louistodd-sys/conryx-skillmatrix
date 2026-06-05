@@ -6,7 +6,7 @@ import {
   TrendingDown,
 } from 'lucide-react';
 import { differenceInDays, parseISO, isValid, format } from 'date-fns';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -292,15 +292,15 @@ export default function People() {
   async function loadData() {
     setLoading(true);
     const [tm, sk, ca, as, te, rs] = await Promise.all([
-      base44.entities.TeamMember.filter({ organisation_id: org.id }),
-      base44.entities.Skill.filter({ organisation_id: org.id }),
-      base44.entities.SkillCategory.filter({ organisation_id: org.id }),
-      base44.entities.SkillAssessment.filter({ organisation_id: org.id }),
-      base44.entities.Team.filter({ organisation_id: org.id }),
-      base44.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamMember.filter({ organisation_id: org.id }),
+      apiClient.entities.Skill.filter({ organisation_id: org.id }),
+      apiClient.entities.SkillCategory.filter({ organisation_id: org.id }),
+      apiClient.entities.SkillAssessment.filter({ organisation_id: org.id }),
+      apiClient.entities.Team.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
     ]);
     let au = [];
-    try { au = await base44.entities.User.filter({ organisation_id: org.id }); } catch (_) {}
+    try { au = await apiClient.entities.User.filter({ organisation_id: org.id }); } catch (_) {}
 
     const role = user?.role || 'viewer';
     let filteredTM = tm;

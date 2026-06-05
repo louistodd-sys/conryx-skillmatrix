@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Loader2 } from 'lucide-react';
@@ -27,8 +27,8 @@ export default function SupplierFormModal({ org, supplier, onClose, onSaved }) {
     setSaving(true);
     try {
       const payload = { ...form, organisation_id: org.id };
-      if (supplier?.id) await base44.entities.BRCSupplier.update(supplier.id, payload);
-      else await base44.entities.BRCSupplier.create(payload);
+      if (supplier?.id) await apiClient.entities.BRCSupplier.update(supplier.id, payload);
+      else await apiClient.entities.BRCSupplier.create(payload);
       toast.success(supplier ? 'Supplier updated' : 'Supplier added');
       onSaved();
     } catch {

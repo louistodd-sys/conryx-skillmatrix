@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ShieldCheck, TrendingUp, AlertTriangle, Clock, CheckCircle2, RefreshCw, Bell, ChevronRight, Link2, BookOpen, ArrowRight, Settings, FileText, ClipboardCheck, XCircle } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import useOrganisation from '@/lib/useOrganisation';
 import { BRC_STANDARD_LABELS, hasMultipleModules } from '@/lib/brcModuleGuard';
@@ -144,15 +144,15 @@ function BrcDashboardContent() {
     async function load() {
       setLoading(true);
       const [cls, sts, tms, mbs, ass, skl, capasData, ncsData, cals] = await Promise.all([
-        base44.entities.BRCClause.filter({ standard: org.brc_standard }, 'display_order', 500),
-        base44.entities.BRCClauseStatus.filter({ organisation_id: orgId }, '-updated_date', 500),
-        base44.entities.Team.filter({ organisation_id: orgId }),
-        base44.entities.TeamMember.filter({ organisation_id: orgId }),
-        base44.entities.SkillAssessment.filter({ organisation_id: orgId }),
-        base44.entities.Skill.filter({ organisation_id: orgId }),
-        base44.entities.BRCCAPA.filter({ organisation_id: orgId }),
-        base44.entities.BRCNonConformance.filter({ organisation_id: orgId }),
-        base44.entities.BRCCalibrationRecord.filter({ organisation_id: orgId }),
+        apiClient.entities.BRCClause.filter({ standard: org.brc_standard }, 'display_order', 500),
+        apiClient.entities.BRCClauseStatus.filter({ organisation_id: orgId }, '-updated_date', 500),
+        apiClient.entities.Team.filter({ organisation_id: orgId }),
+        apiClient.entities.TeamMember.filter({ organisation_id: orgId }),
+        apiClient.entities.SkillAssessment.filter({ organisation_id: orgId }),
+        apiClient.entities.Skill.filter({ organisation_id: orgId }),
+        apiClient.entities.BRCCAPA.filter({ organisation_id: orgId }),
+        apiClient.entities.BRCNonConformance.filter({ organisation_id: orgId }),
+        apiClient.entities.BRCCalibrationRecord.filter({ organisation_id: orgId }),
       ]);
       setClauses(cls); setStatuses(sts); setTeams(tms); setMembers(mbs);
       setAssessments(ass); setSkills(skl); setCapas(capasData); setNcs(ncsData);
@@ -176,7 +176,7 @@ function BrcDashboardContent() {
   const handleRecompute = async () => {
     setRecomputing(true);
     setRecomputeDone(false);
-    await base44.functions.invoke('recomputeReadinessScore', { organisation_id: orgId });
+    await apiClient.functions.invoke('recomputeReadinessScore', { organisation_id: orgId });
     await refreshOrg();
     setRecomputing(false);
     setRecomputeDone(true);

@@ -1,6 +1,6 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,7 @@ function BrcGlassRegisterContent() {
 
   const load = () => {
     if (!org) return;
-    base44.entities.BRCGlassItem.filter({ organisation_id: org.id }, 'location').then(d => {
+    apiClient.entities.BRCGlassItem.filter({ organisation_id: org.id }, 'location').then(d => {
       setItems(d); setLoading(false);
     });
   };

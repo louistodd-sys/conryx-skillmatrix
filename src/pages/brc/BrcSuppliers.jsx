@@ -1,6 +1,6 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,7 +33,7 @@ function BrcSuppliersContent() {
 
   const load = () => {
     if (!org) return;
-    base44.entities.BRCSupplier.filter({ organisation_id: org.id }, 'name').then(d => {
+    apiClient.entities.BRCSupplier.filter({ organisation_id: org.id }, 'name').then(d => {
       setSuppliers(d); setLoading(false);
     });
   };

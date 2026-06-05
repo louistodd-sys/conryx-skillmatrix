@@ -5,7 +5,7 @@ import {
   ArrowRight, CheckCircle2, Loader2, Link2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { hasBrcEntitlement, hasBrcModule } from '@/lib/brcModuleGuard';
 import { BRC_PRICING } from '@/lib/tierConfig';
@@ -36,7 +36,7 @@ export default function UpgradeBrc() {
 
   const handleSubscribe = async () => {
     setLoading(true);
-    const res = await base44.functions.invoke('stripeBrcCheckout', {});
+    const res = await apiClient.functions.invoke('stripeBrcCheckout', {});
     if (res.data?.url) window.location.href = res.data.url;
     setLoading(false);
   };

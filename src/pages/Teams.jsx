@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Users, FolderKanban, ChevronRight } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/EmptyState';
@@ -25,11 +25,11 @@ export default function Teams() {
 
   async function loadData() {
     const [t, tm, trs, s, a] = await Promise.all([
-      base44.entities.Team.filter({ organisation_id: org.id }),
-      base44.entities.TeamMember.filter({ organisation_id: org.id }),
-      base44.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
-      base44.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
-      base44.entities.SkillAssessment.filter({ organisation_id: org.id }),
+      apiClient.entities.Team.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamMember.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
+      apiClient.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
+      apiClient.entities.SkillAssessment.filter({ organisation_id: org.id }),
     ]);
     setTeams(t.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)));
     setTeamMembers(tm);

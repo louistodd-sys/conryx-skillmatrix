@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Loader2, Search, Link2 } from 'lucide-react';
@@ -30,9 +30,9 @@ export default function ClausePickerModal({ org, entityType, recordId, recordLab
   useEffect(() => {
     if (!org?.brc_standard) return;
     Promise.all([
-      base44.entities.BRCClause.filter({ standard: org.brc_standard }, 'display_order', 200),
-      base44.entities.BRCClauseStatus.filter({ organisation_id: org.id }),
-      base44.entities.BRCClauseEvidenceLink.filter({ organisation_id: org.id, linked_entity_id: recordId }),
+      apiClient.entities.BRCClause.filter({ standard: org.brc_standard }, 'display_order', 200),
+      apiClient.entities.BRCClauseStatus.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCClauseEvidenceLink.filter({ organisation_id: org.id, linked_entity_id: recordId }),
     ]).then(([cls, sts, links]) => {
       setClauses(cls);
       setStatuses(sts);
@@ -61,7 +61,7 @@ export default function ClausePickerModal({ org, entityType, recordId, recordLab
     if (alreadyLinkedClauseIds.has(clause.id)) return;
     setSaving(clause.id);
     try {
-      await base44.entities.BRCClauseEvidenceLink.create({
+      await apiClient.entities.BRCClauseEvidenceLink.create({
         organisation_id:    org.id,
         clause_id:          clause.id,
         linked_entity_type: linkedEntityType,

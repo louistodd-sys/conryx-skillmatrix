@@ -5,7 +5,7 @@ import {
   CheckCircle2, XCircle, Clock, AlertTriangle, MinusCircle,
 } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -139,15 +139,15 @@ export default function PeoplePage() {
 
   async function loadData() {
     const [tm, t, s, c, a, trs] = await Promise.all([
-      base44.entities.TeamMember.filter({ organisation_id: org.id }),
-      base44.entities.Team.filter({ organisation_id: org.id }),
-      base44.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
-      base44.entities.SkillCategory.filter({ organisation_id: org.id }),
-      base44.entities.SkillAssessment.filter({ organisation_id: org.id }),
-      base44.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamMember.filter({ organisation_id: org.id }),
+      apiClient.entities.Team.filter({ organisation_id: org.id }),
+      apiClient.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
+      apiClient.entities.SkillCategory.filter({ organisation_id: org.id }),
+      apiClient.entities.SkillAssessment.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
     ]);
     let u = [];
-    try { u = await base44.entities.User.filter({ organisation_id: org.id }); } catch (_) {}
+    try { u = await apiClient.entities.User.filter({ organisation_id: org.id }); } catch (_) {}
     setTeamMembers(tm);
     setTeams(t);
     setSkills(s);

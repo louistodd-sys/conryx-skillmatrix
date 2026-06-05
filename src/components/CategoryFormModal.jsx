@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import useTierCheck from '@/hooks/useTierCheck';
@@ -23,7 +23,7 @@ export default function CategoryFormModal({ categories, orgId, onClose, onSaved 
     if (!allowed) return;
 
     setSaving(true);
-    await base44.entities.SkillCategory.create({
+    await apiClient.entities.SkillCategory.create({
       organisation_id: orgId,
       name: newName.trim(),
       colour: newColour,
@@ -32,19 +32,19 @@ export default function CategoryFormModal({ categories, orgId, onClose, onSaved 
     setNewName('');
     onSaved();
     setSaving(false);
-    const updated = await base44.entities.SkillCategory.filter({ organisation_id: orgId });
+    const updated = await apiClient.entities.SkillCategory.filter({ organisation_id: orgId });
     setItems(updated.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)));
   };
 
   const deleteCategory = async (cat) => {
     if (!confirm(`Delete category "${cat.name}"? Skills in this category must be reassigned first.`)) return;
-    await base44.entities.SkillCategory.delete(cat.id);
+    await apiClient.entities.SkillCategory.delete(cat.id);
     setItems(items.filter(c => c.id !== cat.id));
     onSaved();
   };
 
   const updateColour = async (cat, colour) => {
-    await base44.entities.SkillCategory.update(cat.id, { colour });
+    await apiClient.entities.SkillCategory.update(cat.id, { colour });
     setItems(items.map(c => c.id === cat.id ? { ...c, colour } : c));
     onSaved();
   };

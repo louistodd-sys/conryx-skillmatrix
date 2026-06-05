@@ -3,7 +3,7 @@ import { Save, Trash2, Download, Loader2, Upload, X, AlertTriangle, Users } from
 import BulkImportModal from '@/components/BulkImportModal';
 import BillingSection from '@/components/BillingSection';
 import ModuleToggleSection from '@/components/brc/ModuleToggleSection';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -127,10 +127,10 @@ export default function Settings() {
   useEffect(() => {
     if (!org) return;
     Promise.all([
-      base44.entities.User.filter({ organisation_id: org.id }),
-      base44.entities.TeamMember.filter({ organisation_id: org.id }),
-      base44.entities.Team.filter({ organisation_id: org.id }),
-      base44.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
+      apiClient.entities.User.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamMember.filter({ organisation_id: org.id }),
+      apiClient.entities.Team.filter({ organisation_id: org.id }),
+      apiClient.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
     ]).then(([users, members, teams, skills]) => {
       const seen = new Set();
       let employees = 0;
@@ -144,8 +144,8 @@ export default function Settings() {
 
   const handleSave = async () => {
     setSaving(true);
-    await base44.entities.Organisation.update(org.id, form);
-    await base44.entities.AuditLogEntry.create({
+    await apiClient.entities.Organisation.update(org.id, form);
+    await apiClient.entities.AuditLogEntry.create({
       organisation_id: org.id,
       action: 'organisation.settings_updated',
       target_type: 'organisation',
@@ -168,9 +168,9 @@ export default function Settings() {
     }
     setLogoUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await apiClient.integrations.Core.UploadFile({ file });
       setLogoPreview(file_url);
-      await base44.entities.Organisation.update(org.id, { logo_url: file_url });
+      await apiClient.entities.Organisation.update(org.id, { logo_url: file_url });
       await refreshOrg();
       toast.success('Logo updated');
     } catch {
@@ -181,7 +181,7 @@ export default function Settings() {
 
   const handleRemoveLogo = async () => {
     setLogoPreview(null);
-    await base44.entities.Organisation.update(org.id, { logo_url: null });
+    await apiClient.entities.Organisation.update(org.id, { logo_url: null });
     await refreshOrg();
   };
 
@@ -189,12 +189,12 @@ export default function Settings() {
     setExporting(true);
 
     const [users, teams, skills, assessments, categories, teamMembers] = await Promise.all([
-      base44.entities.User.filter({ organisation_id: org.id }),
-      base44.entities.Team.filter({ organisation_id: org.id }),
-      base44.entities.Skill.filter({ organisation_id: org.id }),
-      base44.entities.SkillAssessment.filter({ organisation_id: org.id }),
-      base44.entities.SkillCategory.filter({ organisation_id: org.id }),
-      base44.entities.TeamMember.filter({ organisation_id: org.id }),
+      apiClient.entities.User.filter({ organisation_id: org.id }),
+      apiClient.entities.Team.filter({ organisation_id: org.id }),
+      apiClient.entities.Skill.filter({ organisation_id: org.id }),
+      apiClient.entities.SkillAssessment.filter({ organisation_id: org.id }),
+      apiClient.entities.SkillCategory.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamMember.filter({ organisation_id: org.id }),
     ]);
 
     const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
@@ -233,7 +233,7 @@ export default function Settings() {
     };
 
     // Log audit entry
-    await base44.entities.AuditLogEntry.create({
+    await apiClient.entities.AuditLogEntry.create({
       organisation_id: org.id,
       action: 'data.exported',
       target_type: 'organisation',
@@ -257,9 +257,9 @@ export default function Settings() {
   };
 
   const handleDeleteOrg = async () => {
-    const res = await base44.functions.invoke('deleteOrganisation', {});
+    const res = await apiClient.functions.invoke('deleteOrganisation', {});
     if (res.data?.deleted) {
-      base44.auth.logout('/');
+      apiClient.auth.logout('/');
     }
   };
 

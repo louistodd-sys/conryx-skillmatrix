@@ -1,6 +1,6 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { useState, useEffect, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { TrendingUp, AlertTriangle, ClipboardList, MessageSquare, Wrench } from 'lucide-react';
@@ -36,11 +36,11 @@ function BrcAnalyticsContent() {
   useEffect(() => {
     if (!org) return;
     Promise.all([
-      base44.entities.BRCNonConformance.filter({ organisation_id: org.id }),
-      base44.entities.BRCCAPA.filter({ organisation_id: org.id }),
-      base44.entities.BRCComplaint.filter({ organisation_id: org.id }),
-      base44.entities.BRCCalibrationRecord.filter({ organisation_id: org.id }),
-      base44.entities.BRCAudit.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCNonConformance.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCCAPA.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCComplaint.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCCalibrationRecord.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCAudit.filter({ organisation_id: org.id }),
     ]).then(([n, c, comp, cal, aud]) => {
       setNcs(n); setCapas(c); setComplaints(comp); setCalibration(cal); setAudits(aud);
       setLoading(false);

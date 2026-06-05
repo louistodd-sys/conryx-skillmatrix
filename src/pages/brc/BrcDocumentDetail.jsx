@@ -1,7 +1,7 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { FileText, ExternalLink, Tag, Calendar, Hash, User } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
@@ -29,8 +29,8 @@ function BrcDocumentDetailContent() {
   useEffect(() => {
     if (!org || !documentId || documentId === 'new') { setLoading(false); return; }
     Promise.all([
-      base44.entities.BRCDocument.filter({ id: documentId }),
-      base44.entities.BRCClauseEvidenceLink.filter({ organisation_id: org.id, linked_entity_id: documentId }),
+      apiClient.entities.BRCDocument.filter({ id: documentId }),
+      apiClient.entities.BRCClauseEvidenceLink.filter({ organisation_id: org.id, linked_entity_id: documentId }),
     ]).then(async ([docs, links]) => {
       const d = docs[0];
       if (d) setDoc(d);
@@ -38,7 +38,7 @@ function BrcDocumentDetailContent() {
       if (links.length > 0) {
         // Fetch the actual clause records so we can show numbers + titles
         const clauseIds = [...new Set(links.map(l => l.clause_id))];
-        const allClauses = await base44.entities.BRCClause.filter(
+        const allClauses = await apiClient.entities.BRCClause.filter(
           { standard: org.brc_standard || 'brcgs_packaging' }, 'display_order', 200
         );
         const matched = allClauses.filter(c => clauseIds.includes(c.id));

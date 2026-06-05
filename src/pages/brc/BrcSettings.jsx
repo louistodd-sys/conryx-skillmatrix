@@ -1,7 +1,7 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { Settings, Loader2, Save, Database, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,11 +27,11 @@ function BrcSettingsContent() {
 
   const handleSave = async () => {
     setSaving(true);
-    await base44.entities.Organisation.update(org.id, {
+    await apiClient.entities.Organisation.update(org.id, {
       brc_standard:          form.brc_standard          || null,
       brc_audit_target_date: form.brc_audit_target_date || null,
     });
-    await base44.entities.AuditLogEntry.create({
+    await apiClient.entities.AuditLogEntry.create({
       organisation_id: org.id,
       actor_user_id:   user?.id,
       actor_display:   user?.full_name || user?.email,
@@ -126,7 +126,7 @@ function BrcSettingsContent() {
             onClick={async () => {
               setSeeding(true);
               setSeedResult(null);
-              const res = await base44.functions.invoke('seedBrcDemoData', {});
+              const res = await apiClient.functions.invoke('seedBrcDemoData', {});
               setSeedResult(res.data);
               setSeeding(false);
             }}
@@ -141,7 +141,7 @@ function BrcSettingsContent() {
               if (!confirm('This will delete and replace all existing BRC documents and clause statuses. Continue?')) return;
               setSeeding(true);
               setSeedResult(null);
-              const res = await base44.functions.invoke('seedBrcDemoData', { force: true });
+              const res = await apiClient.functions.invoke('seedBrcDemoData', { force: true });
               setSeedResult(res.data);
               setSeeding(false);
             }}

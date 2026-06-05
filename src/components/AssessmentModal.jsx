@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,7 +36,7 @@ export default function AssessmentModal({ userId, userName, skill, existingAsses
     setSaving(true);
     let assessment;
     if (existingAssessment) {
-      assessment = await base44.entities.SkillAssessment.update(existingAssessment.id, {
+      assessment = await apiClient.entities.SkillAssessment.update(existingAssessment.id, {
         proficiency_level: form.proficiency_level,
         assessed_date: form.assessed_date,
         expiry_date: form.expiry_date || null,
@@ -45,7 +45,7 @@ export default function AssessmentModal({ userId, userName, skill, existingAsses
         assessed_by_name: form.assessed_by_name || user?.full_name,
       });
     } else {
-      assessment = await base44.entities.SkillAssessment.create({
+      assessment = await apiClient.entities.SkillAssessment.create({
         organisation_id: orgId,
         user_id: userId,
         user_name: userName,
@@ -61,7 +61,7 @@ export default function AssessmentModal({ userId, userName, skill, existingAsses
     }
 
     // Write audit log entry for every assessment
-    await base44.entities.AuditLogEntry.create({
+    await apiClient.entities.AuditLogEntry.create({
       organisation_id: orgId,
       actor_user_id: user?.id,
       actor_display: user?.full_name,

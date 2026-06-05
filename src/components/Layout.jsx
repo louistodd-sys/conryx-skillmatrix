@@ -8,7 +8,7 @@ import {
   Wrench, MessageSquare, FlaskConical, Bug, GraduationCap,
   TrendingUp, CheckSquare,
 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import useOrganisation from '@/lib/useOrganisation';
 import NotificationCenter from '@/components/NotificationCenter';
@@ -241,7 +241,7 @@ export default function Layout() {
 
     const fetchCount = async () => {
       try {
-        const notifs = await base44.entities.Notification.filter(
+        const notifs = await apiClient.entities.Notification.filter(
           { user_id: user.id },
           '-created_date',
           50
@@ -389,7 +389,7 @@ export default function Layout() {
               <p className="text-[11px] text-sidebar-foreground/60 capitalize font-medium">{role}</p>
             </div>
             <button
-              onClick={() => base44.auth.logout()}
+              onClick={() => apiClient.auth.logout()}
               title="Sign out"
               className="shrink-0 p-1 rounded-md hover:bg-sidebar-border transition-colors"
             >

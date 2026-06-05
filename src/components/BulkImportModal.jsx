@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Download, Upload, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 
 const TEMPLATE_CSV = `Team,Member Name,Member Email
@@ -69,11 +69,11 @@ export default function BulkImportModal({ orgId, onClose, onImported }) {
     setError('');
 
     // Load existing teams once
-    const existingTeams = await base44.entities.Team.filter({ organisation_id: orgId });
+    const existingTeams = await apiClient.entities.Team.filter({ organisation_id: orgId });
     const teamMap = Object.fromEntries(existingTeams.map(t => [t.name.toLowerCase().trim(), t]));
 
     // Load existing members to avoid duplicates (by name+team)
-    const existingMembers = await base44.entities.TeamMember.filter({ organisation_id: orgId });
+    const existingMembers = await apiClient.entities.TeamMember.filter({ organisation_id: orgId });
     const memberSet = new Set(existingMembers.map(m => `${m.team_id}::${(m.user_name || '').toLowerCase().trim()}`));
 
     let created = 0, skipped = 0, errors = 0;
@@ -86,7 +86,7 @@ export default function BulkImportModal({ orgId, onClose, onImported }) {
       // Auto-create team if it doesn't exist
       if (!team) {
         try {
-          team = await base44.entities.Team.create({
+          team = await apiClient.entities.Team.create({
             organisation_id: orgId,
             name: row.team.trim(),
             display_order: 0,
@@ -108,7 +108,7 @@ export default function BulkImportModal({ orgId, onClose, onImported }) {
 
       try {
         const memberId = crypto.randomUUID();
-        await base44.entities.TeamMember.create({
+        await apiClient.entities.TeamMember.create({
           organisation_id: orgId,
           team_id: team.id,
           user_id: memberId,

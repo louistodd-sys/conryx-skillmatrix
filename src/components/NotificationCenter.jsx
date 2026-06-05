@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Bell, Check } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow, parseISO } from 'date-fns';
@@ -12,19 +12,19 @@ export default function NotificationCenter({ onClose, onRead }) {
 
   useEffect(() => {
     if (!user) return;
-    base44.entities.Notification.filter({ user_id: user.id }, '-created_date', 20)
+    apiClient.entities.Notification.filter({ user_id: user.id }, '-created_date', 20)
       .then(setNotifications)
       .finally(() => setLoading(false));
   }, [user]);
 
   const markRead = async (id) => {
-    await base44.entities.Notification.update(id, { read_at: new Date().toISOString() });
+    await apiClient.entities.Notification.update(id, { read_at: new Date().toISOString() });
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n));
   };
 
   const markAllRead = async () => {
     const unread = notifications.filter(n => !n.read_at);
-    await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { read_at: new Date().toISOString() })));
+    await Promise.all(unread.map(n => apiClient.entities.Notification.update(n.id, { read_at: new Date().toISOString() })));
     setNotifications(prev => prev.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() })));
     onRead?.();
   };

@@ -24,10 +24,10 @@ const auth = {
   },
 }
 
-export const base44 = {
+export const apiClient = {
   entities,
   auth,
   functions: { invoke: invokeFn },
 }
 
-export default base44
+export default apiClient

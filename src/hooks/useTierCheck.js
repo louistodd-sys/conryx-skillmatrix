@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 
 /**
  * Hook to check tier limits before performing an action.
@@ -16,7 +16,7 @@ export default function useTierCheck() {
 
   const checkLimit = async (resource) => {
     setChecking(true);
-    const res = await base44.functions.invoke('checkTierLimit', { resource });
+    const res = await apiClient.functions.invoke('checkTierLimit', { resource });
     setChecking(false);
 
     if (!res.data.allowed) {

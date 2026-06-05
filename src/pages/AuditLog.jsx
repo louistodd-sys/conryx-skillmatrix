@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollText, Search, ChevronDown, ChevronRight } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,7 @@ export default function AuditLog() {
   async function loadData() {
     // Fetch without hard cap — use a large limit and paginate client-side
     // For very large logs the backend may need cursor-based pagination
-    const l = await base44.entities.AuditLogEntry.filter(
+    const l = await apiClient.entities.AuditLogEntry.filter(
       { organisation_id: org.id },
       '-created_date',
       1000

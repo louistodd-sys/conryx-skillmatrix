@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Search } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -10,7 +10,7 @@ export default function AddMemberModal({ teamId, orgId, existingMemberIds, onClo
   const [adding, setAdding] = useState(null);
 
   useEffect(() => {
-    base44.entities.User.filter({ organisation_id: orgId }).then(setUsers);
+    apiClient.entities.User.filter({ organisation_id: orgId }).then(setUsers);
   }, [orgId]);
 
   const available = users.filter(u =>
@@ -21,7 +21,7 @@ export default function AddMemberModal({ teamId, orgId, existingMemberIds, onClo
 
   const addUser = async (user) => {
     setAdding(user.id);
-    await base44.entities.TeamMember.create({
+    await apiClient.entities.TeamMember.create({
       organisation_id: orgId,
       team_id: teamId,
       user_id: user.id,

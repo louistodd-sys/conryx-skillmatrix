@@ -1,7 +1,7 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { FileText, Plus, Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,7 @@ function BrcDocumentsContent() {
 
   useEffect(() => {
     if (!org) return;
-    base44.entities.BRCDocument.filter({ organisation_id: org.id }, '-created_date').then(d => {
+    apiClient.entities.BRCDocument.filter({ organisation_id: org.id }, '-created_date').then(d => {
       setDocs(d);
       setLoading(false);
     });

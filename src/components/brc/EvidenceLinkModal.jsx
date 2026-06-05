@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Loader2, Search, CheckCircle2, Link2, FileText, ScrollText, ClipboardList, AlertTriangle, Wrench, Truck, Users2, Bug, MessageSquare } from 'lucide-react';
@@ -37,7 +37,7 @@ export default function EvidenceLinkModal({ clause, org, existingLinks = [], onC
     setSearch('');
     setSelected(new Set());
     setLoading(true);
-    base44.entities[tab.entity].filter({ organisation_id: org.id }).then(r => {
+    apiClient.entities[tab.entity].filter({ organisation_id: org.id }).then(r => {
       setRecords(r);
       setLoading(false);
     });
@@ -62,7 +62,7 @@ export default function EvidenceLinkModal({ clause, org, existingLinks = [], onC
     setSaving(true);
     try {
       await Promise.all([...selected].map(id =>
-        base44.entities.BRCClauseEvidenceLink.create({
+        apiClient.entities.BRCClauseEvidenceLink.create({
           organisation_id:    org.id,
           clause_id:          clause.id,
           linked_entity_type: tab.key,

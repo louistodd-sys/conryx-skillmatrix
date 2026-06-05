@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Loader2 } from 'lucide-react';
@@ -28,8 +28,8 @@ export default function PestControlFormModal({ org, visit, onClose, onSaved }) {
     setSaving(true);
     try {
       const payload = { ...form, areas_inspected: areasInput.split(',').map(a => a.trim()).filter(Boolean), organisation_id: org.id };
-      if (visit?.id) await base44.entities.BRCPestControlVisit.update(visit.id, payload);
-      else await base44.entities.BRCPestControlVisit.create(payload);
+      if (visit?.id) await apiClient.entities.BRCPestControlVisit.update(visit.id, payload);
+      else await apiClient.entities.BRCPestControlVisit.create(payload);
       toast.success(visit ? 'Visit updated' : 'Visit logged');
       onSaved();
     } catch {

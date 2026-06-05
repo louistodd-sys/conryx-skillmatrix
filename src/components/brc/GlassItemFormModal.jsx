@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Loader2 } from 'lucide-react';
@@ -26,8 +26,8 @@ export default function GlassItemFormModal({ org, item, onClose, onSaved }) {
     setSaving(true);
     try {
       const payload = { ...form, organisation_id: org.id };
-      if (item?.id) await base44.entities.BRCGlassItem.update(item.id, payload);
-      else await base44.entities.BRCGlassItem.create(payload);
+      if (item?.id) await apiClient.entities.BRCGlassItem.update(item.id, payload);
+      else await apiClient.entities.BRCGlassItem.create(payload);
       toast.success(item ? 'Item updated' : 'Item added to register');
       onSaved();
     } catch {
