@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabaseClient'
 import {
   Grid3X3, BarChart3, Users2, ShieldCheck, FileText,
   CheckCircle2, ArrowRight, Zap, Lock, Download,
-  ClipboardList, TrendingUp, Building2,
+  TrendingUp, Building2, Eye, EyeOff,
 } from 'lucide-react'
 
 const FEATURES = [
@@ -80,56 +80,121 @@ const PLANS = [
   },
 ]
 
+function PasswordInput({ value, onChange, placeholder, autoComplete }) {
+  const [show, setShow] = useState(false)
+  return (
+    <div className="relative">
+      <input
+        type={show ? 'text' : 'password'}
+        required
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+        minLength={8}
+        className="w-full border border-slate-300 rounded-lg px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      />
+      <button
+        type="button"
+        onClick={() => setShow(s => !s)}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+        tabIndex={-1}
+      >
+        {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+      </button>
+    </div>
+  )
+}
+
 function SignInForm() {
+  const [mode, setMode] = useState('signin') // 'signin' | 'signup' | 'verify'
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [code, setCode] = useState('')
-  const [step, setStep] = useState('email') // 'email' | 'code'
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  async function handleSendCode(e) {
+  function reset(newMode) {
+    setMode(newMode)
+    setPassword('')
+    setConfirmPassword('')
+    setCode('')
+    setError('')
+  }
+
+  async function handleSignIn(e) {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { error: err } = await supabase.auth.signInWithOtp({
+    const { error: err } = await supabase.auth.signInWithPassword({
       email: email.trim(),
-      options: { shouldCreateUser: true },
+      password,
+    })
+    if (err) setError(err.message)
+    // On success AuthContext fires and re-renders
+    setLoading(false)
+  }
+
+  async function handleSignUp(e) {
+    e.preventDefault()
+    setError('')
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters')
+      return
+    }
+    setLoading(true)
+    const { error: err } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
     })
     if (err) {
       setError(err.message)
     } else {
-      setStep('code')
+      setMode('verify')
     }
     setLoading(false)
   }
 
-  async function handleVerifyCode(e) {
+  async function handleVerify(e) {
     e.preventDefault()
     setError('')
     setLoading(true)
     const { error: err } = await supabase.auth.verifyOtp({
       email: email.trim(),
       token: code.trim(),
-      type: 'email',
+      type: 'signup',
     })
     if (err) {
       setError(err.message)
       setCode('')
     }
-    // On success, AuthContext onAuthStateChange fires and re-renders the app
+    // On success AuthContext fires and re-renders
     setLoading(false)
   }
 
-  if (step === 'code') {
+  // ── Verify email step ─────────────────────────────────────────
+  if (mode === 'verify') {
     return (
-      <form onSubmit={handleVerifyCode} className="space-y-3">
-        <div className="text-center mb-4">
+      <form onSubmit={handleVerify} className="space-y-4">
+        <button
+          type="button"
+          onClick={() => reset('signup')}
+          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-2"
+        >
+          <ArrowRight className="w-3.5 h-3.5 rotate-180" /> Back to sign up
+        </button>
+        <div className="text-center mb-2">
           <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
             <Lock className="w-5 h-5 text-blue-600" />
           </div>
-          <p className="text-sm text-slate-600">
-            We sent a verification code to <strong>{email}</strong>.<br />
-            Check your inbox (and junk folder).
+          <h3 className="font-bold text-base mb-1">Check your email</h3>
+          <p className="text-sm text-slate-500">
+            We sent a verification code to <strong>{email}</strong>.
           </p>
         </div>
         <div>
@@ -137,7 +202,6 @@ function SignInForm() {
           <input
             type="text"
             inputMode="numeric"
-            pattern="[0-9]{6,8}"
             maxLength={8}
             required
             autoFocus
@@ -155,45 +219,113 @@ function SignInForm() {
         >
           {loading
             ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            : <>Verify & sign in <ArrowRight className="w-4 h-4" /></>
-          }
-        </button>
-        <button
-          type="button"
-          onClick={() => { setStep('email'); setCode(''); setError('') }}
-          className="w-full text-xs text-slate-400 hover:text-slate-600 py-1"
-        >
-          Use a different email
+            : <>Verify email &amp; continue <ArrowRight className="w-4 h-4" /></>}
         </button>
       </form>
     )
   }
 
+  // ── Sign Up ───────────────────────────────────────────────────
+  if (mode === 'signup') {
+    return (
+      <form onSubmit={handleSignUp} className="space-y-4">
+        <button
+          type="button"
+          onClick={() => reset('signin')}
+          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-2"
+        >
+          <ArrowRight className="w-3.5 h-3.5 rotate-180" /> Back to sign in
+        </button>
+        <h3 className="font-bold text-lg">Create your account</h3>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            autoComplete="email"
+            className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+          <PasswordInput
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="Min. 8 characters"
+            autoComplete="new-password"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Confirm Password</label>
+          <PasswordInput
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+            placeholder="Re-enter password"
+            autoComplete="new-password"
+          />
+        </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        <button
+          type="submit"
+          disabled={loading || !email.trim() || !password || !confirmPassword}
+          className="w-full bg-slate-900 hover:bg-slate-700 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+        >
+          {loading
+            ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            : 'Create account'}
+        </button>
+        <p className="text-xs text-center text-slate-400">Free plan available · Cancel anytime</p>
+      </form>
+    )
+  }
+
+  // ── Sign In ───────────────────────────────────────────────────
   return (
-    <form onSubmit={handleSendCode} className="space-y-3">
+    <form onSubmit={handleSignIn} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Work email</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
         <input
           type="email"
           required
           value={email}
           onChange={e => setEmail(e.target.value)}
           placeholder="you@company.com"
+          autoComplete="email"
           className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+        <PasswordInput
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          placeholder="Your password"
+          autoComplete="current-password"
         />
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button
         type="submit"
-        disabled={loading || !email.trim()}
+        disabled={loading || !email.trim() || !password}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
       >
         {loading
           ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          : <>Send verification code <ArrowRight className="w-4 h-4" /></>
-        }
+          : <>Sign in <ArrowRight className="w-4 h-4" /></>}
       </button>
-      <p className="text-xs text-center text-slate-400">No password required · Free plan available · Cancel anytime</p>
+      <div className="text-center">
+        <span className="text-sm text-slate-500">Don't have an account? </span>
+        <button
+          type="button"
+          onClick={() => reset('signup')}
+          className="text-sm font-medium text-blue-600 hover:text-blue-700"
+        >
+          Create one free
+        </button>
+      </div>
     </form>
   )
 }
@@ -257,11 +389,10 @@ export default function LandingPage() {
 
             {/* Sign-in card */}
             <div id="signin" className="bg-white rounded-2xl border border-slate-200 shadow-xl p-8">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-6">
                 <Building2 className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-bold">Sign in or create account</h2>
+                <h2 className="text-lg font-bold">Welcome to Skills Matrix App</h2>
               </div>
-              <p className="text-sm text-slate-500 mb-6">Enter your work email — we'll send you a magic link. No password needed.</p>
               <SignInForm />
             </div>
           </div>
@@ -349,7 +480,7 @@ export default function LandingPage() {
           </div>
           <div className="grid sm:grid-cols-3 gap-8">
             {[
-              { step: '1', icon: Building2, title: 'Create your organisation', desc: 'Sign up with your work email, name your organisation, and choose from industry skill templates.' },
+              { step: '1', icon: Building2, title: 'Create your organisation', desc: 'Sign up with your work email, set a password, and choose from industry skill templates.' },
               { step: '2', icon: Users2, title: 'Add your team', desc: 'Invite team members via email. Assign them to teams and set their roles in seconds.' },
               { step: '3', icon: TrendingUp, title: 'Start tracking', desc: 'Assess skills, visualise gaps, manage BRC clauses — everything updates in real time.' },
             ].map(({ step, icon: Icon, title, desc }) => (
