@@ -8,6 +8,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import Dashboard from './pages/Dashboard';
+import LandingPage from './pages/LandingPage';
 import SkillsMatrix from './pages/SkillsMatrix';
 import GapAnalysis from './pages/GapAnalysis';
 import Teams from './pages/Teams';
@@ -69,17 +70,18 @@ const AuthenticatedApp = () => {
     }
   }
 
-  // Not authenticated — show login or redirect everything else there
+  // Not authenticated — show landing page, legal pages; everything else → landing
   if (!isAuthenticated) {
     return (
       <>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LandingPage />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/cookies" element={<CookiePolicy />} />
           <Route path="/dpa" element={<DataProcessingAgreement />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <CookieConsentBanner />
       </>
