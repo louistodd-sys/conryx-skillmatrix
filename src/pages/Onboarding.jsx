@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, BookOpen, Users, Send, Check, ArrowRight, ArrowLeft, Loader2, Zap } from 'lucide-react';
+import { Building2, BookOpen, Users, Send, Check, ArrowRight, ArrowLeft, Loader2, Zap, LogOut } from 'lucide-react';
 import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
+import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -190,6 +191,17 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
+        {/* Sign-out escape hatch */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={async () => { await supabase.auth.signOut(); navigate('/'); }}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            Sign out
+          </button>
+        </div>
+
         {/* Progress */}
         <div className="flex items-center justify-center gap-1 mb-8 overflow-x-auto">
           {steps.map((s, i) => (
