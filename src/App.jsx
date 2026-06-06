@@ -69,12 +69,28 @@ const AuthenticatedApp = () => {
     }
   }
 
+  // Not authenticated — show login or redirect everything else there
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/cookies" element={<CookiePolicy />} />
+          <Route path="/dpa" element={<DataProcessingAgreement />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+        <CookieConsentBanner />
+      </>
+    );
+  }
+
   // Render the main app
   return (
     <>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        {!isAuthenticated && <Route path="*" element={<Navigate to="/login" replace />} />}
+        <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/onboarding" element={<Onboarding />} />
         {/* Legal pages — accessible without sidebar layout */}
         <Route path="/privacy" element={<PrivacyPolicy />} />
