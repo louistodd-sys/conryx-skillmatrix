@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Check } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 
 export default function ManageRequiredSkillsModal({ teamId, orgId, existingReqSkills, onClose, onSaved }) {
@@ -11,8 +11,8 @@ export default function ManageRequiredSkillsModal({ teamId, orgId, existingReqSk
 
   useEffect(() => {
     Promise.all([
-      base44.entities.Skill.filter({ organisation_id: orgId, status: 'active' }),
-      base44.entities.SkillCategory.filter({ organisation_id: orgId }),
+      apiClient.entities.Skill.filter({ organisation_id: orgId, status: 'active' }),
+      apiClient.entities.SkillCategory.filter({ organisation_id: orgId }),
     ]).then(([s, c]) => {
       setSkills(s);
       setCategories(c);
@@ -29,7 +29,7 @@ export default function ManageRequiredSkillsModal({ teamId, orgId, existingReqSk
   const handleSave = async () => {
     setSaving(true);
     // Delete existing
-    await Promise.all(existingReqSkills.map(r => base44.entities.TeamRequiredSkill.delete(r.id)));
+    await Promise.all(existingReqSkills.map(r => apiClient.entities.TeamRequiredSkill.delete(r.id)));
     // Create new
     const toCreate = [...selected].map(skillId => ({
       organisation_id: orgId,
@@ -39,7 +39,7 @@ export default function ManageRequiredSkillsModal({ teamId, orgId, existingReqSk
       minimum_proficiency: 1,
     }));
     if (toCreate.length > 0) {
-      await base44.entities.TeamRequiredSkill.bulkCreate(toCreate);
+      await apiClient.entities.TeamRequiredSkill.bulkCreate(toCreate);
     }
     setSaving(false);
     onSaved();

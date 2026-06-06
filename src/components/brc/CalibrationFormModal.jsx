@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Loader2 } from 'lucide-react';
@@ -29,8 +29,8 @@ export default function CalibrationFormModal({ org, record, onClose, onSaved }) 
     setSaving(true);
     try {
       const payload = { ...form, organisation_id: org.id };
-      if (record?.id) await base44.entities.BRCCalibrationRecord.update(record.id, payload);
-      else await base44.entities.BRCCalibrationRecord.create(payload);
+      if (record?.id) await apiClient.entities.BRCCalibrationRecord.update(record.id, payload);
+      else await apiClient.entities.BRCCalibrationRecord.create(payload);
       toast.success(record ? 'Calibration record updated' : 'Equipment added');
       onSaved();
     } catch {

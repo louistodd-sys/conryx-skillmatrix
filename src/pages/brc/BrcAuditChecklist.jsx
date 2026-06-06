@@ -1,6 +1,6 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { useState, useEffect, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { CheckSquare, Download, AlertTriangle, CheckCircle2, Clock, ChevronDown, ChevronUp, ExternalLink, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -178,10 +178,10 @@ function BrcAuditChecklistContent() {
   useEffect(() => {
     if (!org) return;
     Promise.all([
-      org.brc_standard ? base44.entities.BRCClause.filter({ standard: org.brc_standard }, 'display_order', 200) : Promise.resolve([]),
-      base44.entities.BRCClauseStatus.filter({ organisation_id: org.id }),
-      base44.entities.BRCCAPA.filter({ organisation_id: org.id }),
-      base44.entities.BRCNonConformance.filter({ organisation_id: org.id }),
+      org.brc_standard ? apiClient.entities.BRCClause.filter({ standard: org.brc_standard }, 'display_order', 200) : Promise.resolve([]),
+      apiClient.entities.BRCClauseStatus.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCCAPA.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCNonConformance.filter({ organisation_id: org.id }),
     ]).then(([cl, st, cp, nc]) => {
       setClauses(cl); setStatuses(st); setCapas(cp); setNcs(nc); setLoading(false);
     });

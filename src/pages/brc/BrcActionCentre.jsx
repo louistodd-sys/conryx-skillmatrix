@@ -1,6 +1,6 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { useState, useEffect, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Link } from 'react-router-dom';
 import {
@@ -42,14 +42,14 @@ function BrcActionCentreContent() {
   useEffect(() => {
     if (!org) return;
     Promise.all([
-      base44.entities.BRCNonConformance.filter({ organisation_id: org.id }),
-      base44.entities.BRCCAPA.filter({ organisation_id: org.id }),
-      base44.entities.BRCCalibrationRecord.filter({ organisation_id: org.id }),
-      base44.entities.BRCSupplier.filter({ organisation_id: org.id }),
-      base44.entities.BRCDocument.filter({ organisation_id: org.id }),
-      base44.entities.SkillAssessment.filter({ organisation_id: org.id }),
-      base44.entities.BRCComplaint.filter({ organisation_id: org.id }),
-      base44.entities.BRCClauseStatus.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCNonConformance.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCCAPA.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCCalibrationRecord.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCSupplier.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCDocument.filter({ organisation_id: org.id }),
+      apiClient.entities.SkillAssessment.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCComplaint.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCClauseStatus.filter({ organisation_id: org.id }),
     ]).then(([n, c, cal, sup, doc, ass, comp, st]) => {
       setNcs(n); setCapas(c); setCalibration(cal); setSuppliers(sup);
       setDocuments(doc); setAssessments(ass); setComplaints(comp); setStatuses(st);

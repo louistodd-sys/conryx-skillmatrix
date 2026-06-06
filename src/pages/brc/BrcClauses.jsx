@@ -1,7 +1,7 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { ShieldCheck, Search, ChevronDown, ChevronUp, Plus, CheckCircle2 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
@@ -204,9 +204,9 @@ function BrcClausesContent() {
     if (!org) return;
     Promise.all([
       org.brc_standard
-        ? base44.entities.BRCClause.filter({ standard: org.brc_standard }, 'display_order')
+        ? apiClient.entities.BRCClause.filter({ standard: org.brc_standard }, 'display_order')
         : Promise.resolve([]),
-      base44.entities.BRCClauseStatus.filter({ organisation_id: org.id }),
+      apiClient.entities.BRCClauseStatus.filter({ organisation_id: org.id }),
     ]).then(([cl, st]) => {
       setClauses(cl);
       setStatuses(st);
@@ -247,9 +247,9 @@ function BrcClausesContent() {
       const payload = { organisation_id: org.id, clause_id: clauseId, status: newStatus };
       let updated;
       if (existing?.id) {
-        updated = await base44.entities.BRCClauseStatus.update(existing.id, payload);
+        updated = await apiClient.entities.BRCClauseStatus.update(existing.id, payload);
       } else {
-        updated = await base44.entities.BRCClauseStatus.create(payload);
+        updated = await apiClient.entities.BRCClauseStatus.create(payload);
       }
       setStatuses(prev => {
         const without = prev.filter(s => s.clause_id !== clauseId);
@@ -263,7 +263,7 @@ function BrcClausesContent() {
   };
 
   const handleAddEvidence = async (clause) => {
-    const links = await base44.entities.BRCClauseEvidenceLink.filter({ organisation_id: org.id, clause_id: clause.id });
+    const links = await apiClient.entities.BRCClauseEvidenceLink.filter({ organisation_id: org.id, clause_id: clause.id });
     setEvidenceLinks(links);
     setEvidenceModalClause(clause);
   };
@@ -271,7 +271,7 @@ function BrcClausesContent() {
   const handleEvidenceLinked = async () => {
     setEvidenceModalClause(null);
     // Refresh statuses to update evidence counts
-    const st = await base44.entities.BRCClauseStatus.filter({ organisation_id: org.id });
+    const st = await apiClient.entities.BRCClauseStatus.filter({ organisation_id: org.id });
     setStatuses(st);
   };
 

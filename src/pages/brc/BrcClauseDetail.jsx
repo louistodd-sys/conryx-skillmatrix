@@ -1,7 +1,7 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { FileText, ExternalLink, CheckCircle2, Plus, Trash2, ScrollText, ClipboardList, AlertTriangle, Wrench, Truck, Users2, Bug, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
@@ -47,7 +47,7 @@ function BrcClauseDetailContent() {
   const [showGuidance, setShowGuidance] = useState(false);
 
   const loadEvidence = async () => {
-    const links = await base44.entities.BRCClauseEvidenceLink.filter({ organisation_id: org.id, clause_id: clauseId });
+    const links = await apiClient.entities.BRCClauseEvidenceLink.filter({ organisation_id: org.id, clause_id: clauseId });
     setEvidenceLinks(links);
 
     // Batch-load all referenced records
@@ -61,7 +61,7 @@ function BrcClauseDetailContent() {
     await Promise.all(Object.entries(byType).map(async ([type, ids]) => {
       const cfg = ENTITY_TYPE_CONFIG[type];
       if (!cfg) return;
-      const all = await base44.entities[cfg.entity].filter({ organisation_id: org.id });
+      const all = await apiClient.entities[cfg.entity].filter({ organisation_id: org.id });
       all.filter(r => ids.includes(r.id)).forEach(r => { records[r.id] = r; });
     }));
     setEvidenceRecords(records);
@@ -70,8 +70,8 @@ function BrcClauseDetailContent() {
   useEffect(() => {
     if (!org || !clauseId) return;
     Promise.all([
-      base44.entities.BRCClause.filter({ id: clauseId }),
-      base44.entities.BRCClauseStatus.filter({ organisation_id: org.id, clause_id: clauseId }),
+      apiClient.entities.BRCClause.filter({ id: clauseId }),
+      apiClient.entities.BRCClauseStatus.filter({ organisation_id: org.id, clause_id: clauseId }),
     ]).then(([cl, st]) => {
       if (cl[0]) setClause(cl[0]);
       if (st[0]) {
@@ -95,12 +95,12 @@ function BrcClauseDetailContent() {
     };
     let record;
     if (status?.id) {
-      record = await base44.entities.BRCClauseStatus.update(status.id, payload);
+      record = await apiClient.entities.BRCClauseStatus.update(status.id, payload);
     } else {
-      record = await base44.entities.BRCClauseStatus.create(payload);
+      record = await apiClient.entities.BRCClauseStatus.create(payload);
     }
     setStatus(record);
-    await base44.entities.AuditLogEntry.create({
+    await apiClient.entities.AuditLogEntry.create({
       organisation_id: org.id,
       actor_user_id:   user?.id,
       actor_display:   user?.full_name || user?.email,
@@ -118,7 +118,7 @@ function BrcClauseDetailContent() {
 
   const handleRemoveEvidence = async (linkId) => {
     try {
-      await base44.entities.BRCClauseEvidenceLink.delete(linkId);
+      await apiClient.entities.BRCClauseEvidenceLink.delete(linkId);
       await loadEvidence();
       toast.success('Evidence removed');
     } catch {

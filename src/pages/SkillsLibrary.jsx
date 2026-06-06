@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Pencil, Trash2, BookOpen } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,8 +31,8 @@ export default function SkillsLibrary() {
 
   async function loadData() {
     const [s, c] = await Promise.all([
-      base44.entities.Skill.filter({ organisation_id: org.id }),
-      base44.entities.SkillCategory.filter({ organisation_id: org.id }),
+      apiClient.entities.Skill.filter({ organisation_id: org.id }),
+      apiClient.entities.SkillCategory.filter({ organisation_id: org.id }),
     ]);
     setSkills(s);
     setCategories(c.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)));
@@ -45,14 +45,14 @@ export default function SkillsLibrary() {
     .filter(s => !search || s.name.toLowerCase().includes(search.toLowerCase()));
 
   const handleArchive = async (skill) => {
-    await base44.entities.Skill.update(skill.id, {
+    await apiClient.entities.Skill.update(skill.id, {
       status: skill.status === 'active' ? 'archived' : 'active'
     });
     loadData();
   };
 
   const handleDelete = async (skill) => {
-    await base44.entities.Skill.delete(skill.id);
+    await apiClient.entities.Skill.delete(skill.id);
     setConfirmDelete(null);
     loadData();
   };

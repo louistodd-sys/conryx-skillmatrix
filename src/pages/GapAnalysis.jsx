@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { BarChart3, Filter, ChevronRight } from 'lucide-react';
 import SkillDrillDown from '@/components/SkillDrillDown';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import EmptyState from '@/components/EmptyState';
 import RAGBar from '@/components/RAGBar';
@@ -37,12 +37,12 @@ export default function GapAnalysis() {
 
   async function loadData() {
     const [t, tm, s, c, a, trs] = await Promise.all([
-      base44.entities.Team.filter({ organisation_id: org.id }),
-      base44.entities.TeamMember.filter({ organisation_id: org.id }),
-      base44.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
-      base44.entities.SkillCategory.filter({ organisation_id: org.id }),
-      base44.entities.SkillAssessment.filter({ organisation_id: org.id }),
-      base44.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
+      apiClient.entities.Team.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamMember.filter({ organisation_id: org.id }),
+      apiClient.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
+      apiClient.entities.SkillCategory.filter({ organisation_id: org.id }),
+      apiClient.entities.SkillAssessment.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
     ]);
     const visible = user?.role === 'admin'
       ? t

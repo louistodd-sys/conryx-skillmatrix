@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CreditCard, Download, Loader2, Check, Settings, ShieldCheck, ArrowRight } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { TIER_LABELS, TIER_PRICING, TIER_LIMITS, TIER_FEATURES, BRC_PRICING } from '@/lib/tierConfig';
 import { Link } from 'react-router-dom';
@@ -27,7 +27,7 @@ export default function BillingSection({ org }) {
     : null;
 
   useEffect(() => {
-    base44.functions.invoke('stripeInvoices', {})
+    apiClient.functions.invoke('stripeInvoices', {})
       .then(res => setInvoices(res.data?.invoices || []))
       .catch(() => setInvoices([]))
       .finally(() => setInvoicesLoading(false));
@@ -35,7 +35,7 @@ export default function BillingSection({ org }) {
 
   const handleManageSubscription = async () => {
     setPortalLoading(true);
-    const res = await base44.functions.invoke('stripePortal', {});
+    const res = await apiClient.functions.invoke('stripePortal', {});
     if (res.data?.url) window.location.href = res.data.url;
     setPortalLoading(false);
   };
@@ -43,7 +43,7 @@ export default function BillingSection({ org }) {
   const handleUpgrade = async (tier) => {
     if (tier === 'free') return;
     setLoadingTier(tier);
-    const res = await base44.functions.invoke('stripeCheckout', { tier });
+    const res = await apiClient.functions.invoke('stripeCheckout', { tier });
     if (res.data?.url) window.location.href = res.data.url;
     setLoadingTier(null);
   };
@@ -62,7 +62,7 @@ export default function BillingSection({ org }) {
   const [brcCheckoutLoading, setBrcCheckoutLoading] = useState(false);
   const handleBrcSubscribe = async () => {
     setBrcCheckoutLoading(true);
-    const res = await base44.functions.invoke('stripeBrcCheckout', {});
+    const res = await apiClient.functions.invoke('stripeBrcCheckout', {});
     if (res.data?.url) window.location.href = res.data.url;
     setBrcCheckoutLoading(false);
   };

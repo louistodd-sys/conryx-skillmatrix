@@ -1,6 +1,6 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,7 +31,7 @@ function BrcComplaintsContent() {
 
   const load = () => {
     if (!org) return;
-    base44.entities.BRCComplaint.filter({ organisation_id: org.id }, '-complaint_date').then(d => {
+    apiClient.entities.BRCComplaint.filter({ organisation_id: org.id }, '-complaint_date').then(d => {
       setComplaints(d); setLoading(false);
     });
   };

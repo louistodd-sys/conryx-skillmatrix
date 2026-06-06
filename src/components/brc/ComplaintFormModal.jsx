@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Loader2 } from 'lucide-react';
@@ -27,8 +27,8 @@ export default function ComplaintFormModal({ org, complaint, onClose, onSaved })
     setSaving(true);
     try {
       const payload = { ...form, organisation_id: org.id };
-      if (complaint?.id) await base44.entities.BRCComplaint.update(complaint.id, payload);
-      else await base44.entities.BRCComplaint.create(payload);
+      if (complaint?.id) await apiClient.entities.BRCComplaint.update(complaint.id, payload);
+      else await apiClient.entities.BRCComplaint.create(payload);
       toast.success(complaint ? 'Complaint updated' : 'Complaint logged');
       onSaved();
     } catch {

@@ -1,6 +1,6 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Plus, Bug, Calendar, CheckCircle2, AlertTriangle, Clock, Link2 } from 'lucide-react';
@@ -31,7 +31,7 @@ function BrcPestControlContent() {
 
   const load = () => {
     if (!org) return;
-    base44.entities.BRCPestControlVisit.filter({ organisation_id: org.id }, '-visit_date').then(d => {
+    apiClient.entities.BRCPestControlVisit.filter({ organisation_id: org.id }, '-visit_date').then(d => {
       setVisits(d); setLoading(false);
     });
   };

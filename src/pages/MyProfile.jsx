@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BookOpen, Download } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,12 +23,12 @@ export default function MyProfile() {
 
   async function loadData() {
     const [s, c, a, tm, t, trs] = await Promise.all([
-      base44.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
-      base44.entities.SkillCategory.filter({ organisation_id: org.id }),
-      base44.entities.SkillAssessment.filter({ organisation_id: org.id, user_id: user.id }),
-      base44.entities.TeamMember.filter({ organisation_id: org.id, user_id: user.id }),
-      base44.entities.Team.filter({ organisation_id: org.id }),
-      base44.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
+      apiClient.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
+      apiClient.entities.SkillCategory.filter({ organisation_id: org.id }),
+      apiClient.entities.SkillAssessment.filter({ organisation_id: org.id, user_id: user.id }),
+      apiClient.entities.TeamMember.filter({ organisation_id: org.id, user_id: user.id }),
+      apiClient.entities.Team.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
     ]);
     setSkills(s);
     setCategories(c.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)));
@@ -95,7 +95,7 @@ export default function MyProfile() {
     download(assessmentRows, `${name}-assessments-${date}.csv`);
 
     // GDPR Article 15 — audit log entry for every personal data export
-    await base44.entities.AuditLogEntry.create({
+    await apiClient.entities.AuditLogEntry.create({
       organisation_id: org.id,
       actor_user_id: user.id,
       actor_display: user.full_name,

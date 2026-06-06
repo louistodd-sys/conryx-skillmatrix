@@ -1,6 +1,6 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { GraduationCap, Link2, CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -15,9 +15,9 @@ function BrcTrainingContent() {
   useEffect(() => {
     if (!org) return;
     Promise.all([
-      base44.entities.SkillAssessment.filter({ organisation_id: org.id }, '-assessed_date', 100),
-      base44.entities.Skill.filter({ organisation_id: org.id }),
-      base44.entities.TeamMember.filter({ organisation_id: org.id }),
+      apiClient.entities.SkillAssessment.filter({ organisation_id: org.id }, '-assessed_date', 100),
+      apiClient.entities.Skill.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamMember.filter({ organisation_id: org.id }),
     ]).then(([a, s, m]) => {
       setAssessments(a);
       setSkills(s);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Loader2 } from 'lucide-react';
@@ -26,8 +26,8 @@ export default function AuditFormModal({ org, audit, onClose, onSaved }) {
     setSaving(true);
     try {
       const payload = { ...form, organisation_id: org.id };
-      if (audit?.id) await base44.entities.BRCAudit.update(audit.id, payload);
-      else await base44.entities.BRCAudit.create(payload);
+      if (audit?.id) await apiClient.entities.BRCAudit.update(audit.id, payload);
+      else await apiClient.entities.BRCAudit.create(payload);
       toast.success(audit ? 'Audit updated' : 'Audit created');
       onSaved();
     } catch {

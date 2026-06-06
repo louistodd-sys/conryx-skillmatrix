@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Loader2 } from 'lucide-react';
@@ -25,8 +25,8 @@ export default function ManagementReviewFormModal({ org, review, onClose, onSave
     setSaving(true);
     try {
       const payload = { ...form, attendees: attendeeInput.split(',').map(a => a.trim()).filter(Boolean), organisation_id: org.id };
-      if (review?.id) await base44.entities.BRCManagementReview.update(review.id, payload);
-      else await base44.entities.BRCManagementReview.create(payload);
+      if (review?.id) await apiClient.entities.BRCManagementReview.update(review.id, payload);
+      else await apiClient.entities.BRCManagementReview.create(payload);
       toast.success(review ? 'Review updated' : 'Review created');
       onSaved();
     } catch {

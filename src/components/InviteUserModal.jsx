@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,7 +31,7 @@ export default function InviteUserModal({ orgId, teams, onClose, onSaved }) {
     setSending(true);
 
     // Create invitation record
-    await base44.entities.Invitation.create({
+    await apiClient.entities.Invitation.create({
       organisation_id: orgId,
       email: email.trim(),
       role,
@@ -42,7 +42,7 @@ export default function InviteUserModal({ orgId, teams, onClose, onSaved }) {
     });
 
     // Actually invite the user via base44
-    await base44.users.inviteUser(email.trim(), role === 'admin' ? 'admin' : 'user');
+    await apiClient.users.inviteUser(email.trim(), role === 'admin' ? 'admin' : 'user');
 
     setSending(false);
     onSaved();

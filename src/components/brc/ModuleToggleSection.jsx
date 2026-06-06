@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { Grid3X3, ShieldCheck, Loader2, CheckCircle2, Lock, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Link } from 'react-router-dom';
 import { hasBrcEntitlement } from '@/lib/brcModuleGuard';
 import { BRC_PRICING } from '@/lib/tierConfig';
@@ -38,7 +38,7 @@ export default function ModuleToggleSection({ org, onModulesChanged }) {
 
   const handleBrcSubscribe = async () => {
     setBrcCheckoutLoading(true);
-    const res = await base44.functions.invoke('stripeBrcCheckout', {});
+    const res = await apiClient.functions.invoke('stripeBrcCheckout', {});
     if (res.data?.url) window.location.href = res.data.url;
     setBrcCheckoutLoading(false);
   };
@@ -56,8 +56,8 @@ export default function ModuleToggleSection({ org, onModulesChanged }) {
       ? [...new Set([...currentModules, mod])]
       : currentModules.filter(m => m !== mod);
 
-    await base44.entities.Organisation.update(org.id, { modules: updated });
-    await base44.entities.AuditLogEntry.create({
+    await apiClient.entities.Organisation.update(org.id, { modules: updated });
+    await apiClient.entities.AuditLogEntry.create({
       organisation_id: org.id,
       action: enable ? 'module.enabled' : 'module.disabled',
       target_type: 'organisation',

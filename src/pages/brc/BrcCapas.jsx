@@ -1,6 +1,6 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,7 +28,7 @@ function BrcCapasContent() {
 
   const load = () => {
     if (!org) return;
-    base44.entities.BRCCAPA.filter({ organisation_id: org.id }, '-raised_date').then(d => {
+    apiClient.entities.BRCCAPA.filter({ organisation_id: org.id }, '-raised_date').then(d => {
       setCapas(d); setLoading(false);
     });
   };

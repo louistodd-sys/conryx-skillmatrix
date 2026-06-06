@@ -1,6 +1,6 @@
 import BrcModuleGuard from '@/components/BrcModuleGuard';
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Plus, Users2, Calendar, CheckCircle2, Link2 } from 'lucide-react';
@@ -25,7 +25,7 @@ function BrcManagementReviewContent() {
 
   const load = () => {
     if (!org) return;
-    base44.entities.BRCManagementReview.filter({ organisation_id: org.id }, '-meeting_date').then(d => {
+    apiClient.entities.BRCManagementReview.filter({ organisation_id: org.id }, '-meeting_date').then(d => {
       setReviews(d); setLoading(false);
     });
   };

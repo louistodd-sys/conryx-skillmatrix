@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Check, Loader2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { industryTemplates } from '@/lib/industryTemplates';
 
@@ -16,7 +16,7 @@ export default function TemplatePickerModal({ orgId, existingCategories, onClose
     for (const cat of template.categories) {
       let existing = existingCategories.find(c => c.name === cat.name);
       if (!existing) {
-        existing = await base44.entities.SkillCategory.create({
+        existing = await apiClient.entities.SkillCategory.create({
           organisation_id: orgId,
           name: cat.name,
           colour: cat.colour,
@@ -34,7 +34,7 @@ export default function TemplatePickerModal({ orgId, existingCategories, onClose
         status: 'active',
       }));
 
-      await base44.entities.Skill.bulkCreate(skillsToCreate);
+      await apiClient.entities.Skill.bulkCreate(skillsToCreate);
     }
 
     setImporting(false);

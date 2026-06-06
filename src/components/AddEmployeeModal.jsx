@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Loader2, UserPlus } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,7 +53,7 @@ export default function AddEmployeeModal({ orgId, teams, preselectedTeamId, onCl
 
       // Create TeamMember entries for each selected team
       await Promise.all(selectedTeams.map(teamId =>
-        base44.entities.TeamMember.create({
+        apiClient.entities.TeamMember.create({
           organisation_id: orgId,
           team_id: teamId,
           user_id: memberId,
@@ -65,7 +65,7 @@ export default function AddEmployeeModal({ orgId, teams, preselectedTeamId, onCl
       ));
 
       // Audit log
-      await base44.entities.AuditLogEntry.create({
+      await apiClient.entities.AuditLogEntry.create({
         organisation_id: orgId,
         actor_user_id: user?.id,
         actor_display: user?.full_name,

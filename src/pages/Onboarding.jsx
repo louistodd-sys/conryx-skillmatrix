@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, BookOpen, Users, Send, Check, ArrowRight, ArrowLeft, Loader2, Zap } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,18 +71,26 @@ export default function Onboarding() {
   const handleStep1 = async () => {
     if (!orgName.trim()) return;
     setLoading(true);
-    const newOrg = await base44.entities.Organisation.create({
-      name: orgName.trim(),
-      slug: orgName.trim().toLowerCase().replace(/[^a-z0-9]/g, '-'),
-      timezone,
-      subscription_tier: 'free',
-      onboarding_step: 2,
-    });
-    setOrgId(newOrg.id);
-    await base44.auth.updateMe({ organisation_id: newOrg.id, role: 'admin', status: 'active' });
-    await refreshUser();
+    try {
+      const { data } = await apiClient.functions.invoke('onboarding', {
+        org_name: orgName.trim(),
+        user_full_name: user?.full_name || null,
+      });
+      if (!data?.organisation) throw new Error('Onboarding failed — no organisation returned');
+      const newOrg = data.organisation;
+      // Patch timezone and slug via admin update now that org exists
+      await apiClient.entities.Organisation.update(newOrg.id, {
+        slug: orgName.trim().toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        timezone,
+        onboarding_step: 2,
+      });
+      setOrgId(newOrg.id);
+      await refreshUser();
+      setStep(2);
+    } catch (err) {
+      toast.error(err.message || 'Could not create organisation — please try again.');
+    }
     setLoading(false);
-    setStep(2);
   };
 
   const handleStep2 = async () => {
@@ -90,8 +98,8 @@ export default function Onboarding() {
     if (selectedTier !== 'free') {
       setLoading(true);
       try {
-        await base44.entities.Organisation.update(orgId, { subscription_tier: selectedTier, onboarding_step: 3 });
-        const res = await base44.functions.invoke('stripeCheckout', {
+        await apiClient.entities.Organisation.update(orgId, { subscription_tier: selectedTier, onboarding_step: 3 });
+        const res = await apiClient.functions.invoke('stripeCheckout', {
           tier: selectedTier,
           success_url: `${window.location.origin}/onboarding?step=3`,
           cancel_url:  `${window.location.origin}/onboarding?step=2`,
@@ -114,10 +122,10 @@ export default function Onboarding() {
     if (selectedTemplate) {
       const template = industryTemplates.find(t => t.id === selectedTemplate);
       for (const cat of (template?.categories ?? [])) {
-        const newCat = await base44.entities.SkillCategory.create({
+        const newCat = await apiClient.entities.SkillCategory.create({
           organisation_id: orgId, name: cat.name, colour: cat.colour,
         });
-        await base44.entities.Skill.bulkCreate(
+        await apiClient.entities.Skill.bulkCreate(
           cat.skills.map(s => ({
             organisation_id: orgId, category_id: newCat.id,
             name: s.name, scale_type: s.scale_type,
@@ -126,7 +134,7 @@ export default function Onboarding() {
         );
       }
     }
-    await base44.entities.Organisation.update(orgId, { onboarding_step: 4 });
+    await apiClient.entities.Organisation.update(orgId, { onboarding_step: 4 });
     setLoading(false);
     setStep(4);
   };
@@ -135,11 +143,11 @@ export default function Onboarding() {
     if (!orgId) return;
     setLoading(true);
     if (teamName.trim()) {
-      await base44.entities.Team.create({
+      await apiClient.entities.Team.create({
         organisation_id: orgId, name: teamName.trim(), manager_ids: [user?.id],
       });
     }
-    await base44.entities.Organisation.update(orgId, { onboarding_step: 5 });
+    await apiClient.entities.Organisation.update(orgId, { onboarding_step: 5 });
     setLoading(false);
     setStep(5);
   };
@@ -157,19 +165,19 @@ export default function Onboarding() {
       }
       for (const email of emails) {
         try {
-          await base44.entities.Invitation.create({
+          await apiClient.entities.Invitation.create({
             organisation_id: orgId, email, role: 'viewer',
             invited_by_user_id: user?.id, invited_by_name: user?.full_name, status: 'pending',
           });
-          await base44.users.inviteUser(email, 'user');
+          await apiClient.users.inviteUser(email, 'user');
         } catch {
           toast.error(`Failed to invite ${email}`);
         }
       }
     }
-    await base44.entities.Organisation.update(orgId, { onboarding_completed: true, onboarding_step: 6 });
+    await apiClient.entities.Organisation.update(orgId, { onboarding_completed: true, onboarding_step: 6 });
     // Send welcome email
-    await base44.functions.invoke('sendWelcomeEmail', {
+    await apiClient.functions.invoke('sendWelcomeEmail', {
       user_email: user?.email,
       user_name: user?.full_name,
       org_name: orgName,

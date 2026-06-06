@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Users, Plus, Trash2, BookOpen, Settings2, Grid3X3, BarChart3, AlertTriangle, X, Loader2 } from 'lucide-react';
 import Breadcrumb from '@/components/Breadcrumb';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import MetricCard from '@/components/MetricCard';
@@ -73,12 +73,12 @@ export default function TeamDetail() {
 
   async function loadData() {
     const [allTeams, tm, trs, s, a, u] = await Promise.all([
-      base44.entities.Team.filter({ organisation_id: org.id }),
-      base44.entities.TeamMember.filter({ team_id: teamId }),
-      base44.entities.TeamRequiredSkill.filter({ team_id: teamId }),
-      base44.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
-      base44.entities.SkillAssessment.filter({ organisation_id: org.id }),
-      base44.entities.User.filter({ organisation_id: org.id }),
+      apiClient.entities.Team.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamMember.filter({ team_id: teamId }),
+      apiClient.entities.TeamRequiredSkill.filter({ team_id: teamId }),
+      apiClient.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
+      apiClient.entities.SkillAssessment.filter({ organisation_id: org.id }),
+      apiClient.entities.User.filter({ organisation_id: org.id }),
     ]);
     setTeam(allTeams.find(t => t.id === teamId) || null);
     setTeams(allTeams);
@@ -91,8 +91,8 @@ export default function TeamDetail() {
   }
 
   const handleRemoveMember = async (memberId, memberName) => {
-    await base44.entities.TeamMember.delete(memberId);
-    await base44.entities.AuditLogEntry.create({
+    await apiClient.entities.TeamMember.delete(memberId);
+    await apiClient.entities.AuditLogEntry.create({
       organisation_id: org.id,
       actor_user_id: user?.id,
       actor_display: user?.full_name,

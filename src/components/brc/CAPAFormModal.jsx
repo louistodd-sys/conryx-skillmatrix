@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Loader2 } from 'lucide-react';
@@ -24,8 +24,8 @@ export default function CAPAFormModal({ org, capa, onClose, onSaved }) {
     setSaving(true);
     try {
       const payload = { ...form, organisation_id: org.id };
-      if (capa?.id) await base44.entities.BRCCAPA.update(capa.id, payload);
-      else await base44.entities.BRCCAPA.create(payload);
+      if (capa?.id) await apiClient.entities.BRCCAPA.update(capa.id, payload);
+      else await apiClient.entities.BRCCAPA.create(payload);
       toast.success(capa ? 'CAPA updated' : 'CAPA created');
       onSaved();
     } catch {

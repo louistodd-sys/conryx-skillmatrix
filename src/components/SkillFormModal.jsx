@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,9 +31,9 @@ export default function SkillFormModal({ skill, categories, orgId, onClose, onSa
 
     setSaving(true);
     if (skill) {
-      await base44.entities.Skill.update(skill.id, form);
+      await apiClient.entities.Skill.update(skill.id, form);
     } else {
-      await base44.entities.Skill.create({ ...form, organisation_id: orgId, status: 'active' });
+      await apiClient.entities.Skill.create({ ...form, organisation_id: orgId, status: 'active' });
     }
     setSaving(false);
     onSaved();

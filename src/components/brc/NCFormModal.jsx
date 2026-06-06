@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { X, Loader2 } from 'lucide-react';
@@ -29,11 +29,11 @@ export default function NCFormModal({ org, nc, clause, onClose, onSaved }) {
       const payload = { ...form, organisation_id: org.id };
       let saved;
       if (nc?.id) {
-        saved = await base44.entities.BRCNonConformance.update(nc.id, payload);
+        saved = await apiClient.entities.BRCNonConformance.update(nc.id, payload);
       } else {
-        saved = await base44.entities.BRCNonConformance.create(payload);
+        saved = await apiClient.entities.BRCNonConformance.create(payload);
         if (clause?.id && saved?.id) {
-          await base44.entities.BRCClauseEvidenceLink.create({
+          await apiClient.entities.BRCClauseEvidenceLink.create({
             organisation_id: org.id,
             clause_id: clause.id,
             linked_entity_type: 'non_conformance',

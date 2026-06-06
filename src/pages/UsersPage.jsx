@@ -4,7 +4,7 @@ import {
   Plus, Search, Users, Mail, RefreshCw, XCircle, UserPlus,
   Pencil, Trash2, AlertTriangle, X, Loader2, UserCog,
 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,10 +84,10 @@ export default function UsersPage() {
 
   async function loadData() {
     const [u, inv, tm, t] = await Promise.all([
-      base44.entities.User.filter({ organisation_id: org.id }),
-      base44.entities.Invitation.filter({ organisation_id: org.id }),
-      base44.entities.TeamMember.filter({ organisation_id: org.id }),
-      base44.entities.Team.filter({ organisation_id: org.id }),
+      apiClient.entities.User.filter({ organisation_id: org.id }),
+      apiClient.entities.Invitation.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamMember.filter({ organisation_id: org.id }),
+      apiClient.entities.Team.filter({ organisation_id: org.id }),
     ]);
     setUsers(u);
     setInvitations(inv);
@@ -141,15 +141,15 @@ export default function UsersPage() {
     const { userId, name } = deletingEmployee;
 
     const [memberships, assessments] = await Promise.all([
-      base44.entities.TeamMember.filter({ organisation_id: org.id, user_id: userId }),
-      base44.entities.SkillAssessment.filter({ organisation_id: org.id, user_id: userId }),
+      apiClient.entities.TeamMember.filter({ organisation_id: org.id, user_id: userId }),
+      apiClient.entities.SkillAssessment.filter({ organisation_id: org.id, user_id: userId }),
     ]);
     await Promise.all([
-      ...memberships.map(m => base44.entities.TeamMember.delete(m.id)),
-      ...assessments.map(a => base44.entities.SkillAssessment.delete(a.id)),
+      ...memberships.map(m => apiClient.entities.TeamMember.delete(m.id)),
+      ...assessments.map(a => apiClient.entities.SkillAssessment.delete(a.id)),
     ]);
 
-    await base44.entities.AuditLogEntry.create({
+    await apiClient.entities.AuditLogEntry.create({
       organisation_id: org.id,
       actor_user_id:   user?.id,
       actor_display:   user?.full_name,
@@ -169,8 +169,8 @@ export default function UsersPage() {
 
   const handleRevoke = async (inv) => {
     setRevoking(inv.id);
-    await base44.entities.Invitation.update(inv.id, { status: 'revoked' });
-    await base44.entities.AuditLogEntry.create({
+    await apiClient.entities.Invitation.update(inv.id, { status: 'revoked' });
+    await apiClient.entities.AuditLogEntry.create({
       organisation_id: org.id,
       actor_user_id: user?.id,
       actor_display: user?.full_name,
@@ -187,9 +187,9 @@ export default function UsersPage() {
   const handleResend = async (inv) => {
     setResending(inv.id);
     const newExpiry = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
-    await base44.entities.Invitation.update(inv.id, { expires_at: newExpiry, status: 'pending' });
-    try { await base44.users.inviteUser(inv.email, inv.role === 'admin' ? 'admin' : 'user'); } catch (_) {}
-    await base44.entities.AuditLogEntry.create({
+    await apiClient.entities.Invitation.update(inv.id, { expires_at: newExpiry, status: 'pending' });
+    try { await apiClient.users.inviteUser(inv.email, inv.role === 'admin' ? 'admin' : 'user'); } catch (_) {}
+    await apiClient.entities.AuditLogEntry.create({
       organisation_id: org.id,
       actor_user_id: user?.id,
       actor_display: user?.full_name,

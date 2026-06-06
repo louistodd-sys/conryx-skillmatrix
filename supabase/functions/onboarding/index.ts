@@ -7,11 +7,8 @@
  * - Creates Stripe customer
  * - Returns the new org
  */
-import Stripe from 'https://esm.sh/stripe@14?target=deno'
 import { corsHeaders } from '../_shared/cors.ts'
 import { getUser, adminClient } from '../_shared/auth.ts'
-
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!)
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -54,23 +51,29 @@ Deno.serve(async (req) => {
       throw new Error(orgError?.message || 'Failed to create organisation')
     }
 
-    // Create Stripe customer
+    // Create Stripe customer (skipped if STRIPE_SECRET_KEY not configured)
     let stripeCustomerId: string | null = null
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
     try {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        name: org_name.trim(),
-        metadata: { organisation_id: org.id, user_id: user.id },
-      })
-      stripeCustomerId = customer.id
-
+      if (stripeKey) {
+        const { default: Stripe } = await import('https://esm.sh/stripe@14?target=deno')
+        const stripe = new Stripe(stripeKey)
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: org_name.trim(),
+          metadata: { organisation_id: org.id, user_id: user.id },
+        })
+        stripeCustomerId = customer.id
+      }
+      if (stripeCustomerId) {
       // Store stripe_customer_id on the org
       await admin
         .from('organisations')
         .update({ stripe_customer_id: stripeCustomerId })
         .eq('id', org.id)
 
-      org.stripe_customer_id = stripeCustomerId
+        org.stripe_customer_id = stripeCustomerId
+      }
     } catch (stripeErr) {
       // Don't fail onboarding if Stripe fails — can be retried
       console.error('Stripe customer creation failed:', stripeErr)

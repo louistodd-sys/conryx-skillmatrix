@@ -4,7 +4,7 @@ import {
   Users, BookOpen, ClipboardCheck, AlertTriangle, TrendingUp, Clock,
   CheckCircle2, Circle, X, ArrowRight, ChevronRight, Link2, ShieldCheck,
 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { hasBrcModule, hasMultipleModules } from '@/lib/brcModuleGuard';
 import MetricCard from '@/components/MetricCard';
@@ -187,12 +187,12 @@ export default function Dashboard() {
     const isManager = user?.role === 'manager';
 
     const [allUsers, skills, assessments, teams, teamMembers, teamReqSkills] = await Promise.all([
-      base44.entities.User.filter({ organisation_id: org.id }),
-      base44.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
-      base44.entities.SkillAssessment.filter({ organisation_id: org.id }),
-      base44.entities.Team.filter({ organisation_id: org.id }),
-      base44.entities.TeamMember.filter({ organisation_id: org.id }),
-      base44.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
+      apiClient.entities.User.filter({ organisation_id: org.id }),
+      apiClient.entities.Skill.filter({ organisation_id: org.id, status: 'active' }),
+      apiClient.entities.SkillAssessment.filter({ organisation_id: org.id }),
+      apiClient.entities.Team.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamMember.filter({ organisation_id: org.id }),
+      apiClient.entities.TeamRequiredSkill.filter({ organisation_id: org.id }),
     ]);
 
     const visibleTeams = isManager

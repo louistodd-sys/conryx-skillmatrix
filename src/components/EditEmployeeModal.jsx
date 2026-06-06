@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Loader2, UserCog } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,18 +31,18 @@ export default function EditEmployeeModal({ userId, currentName, currentEmail, o
       const newEmail = form.email.trim() || null;
 
       // Update every TeamMember record for this person
-      const memberships = await base44.entities.TeamMember.filter({ organisation_id: orgId, user_id: userId });
+      const memberships = await apiClient.entities.TeamMember.filter({ organisation_id: orgId, user_id: userId });
       await Promise.all(memberships.map(m =>
-        base44.entities.TeamMember.update(m.id, { user_name: newName, user_email: newEmail })
+        apiClient.entities.TeamMember.update(m.id, { user_name: newName, user_email: newEmail })
       ));
 
       // Keep denormalised user_name on assessments in sync
-      const assessments = await base44.entities.SkillAssessment.filter({ organisation_id: orgId, user_id: userId });
+      const assessments = await apiClient.entities.SkillAssessment.filter({ organisation_id: orgId, user_id: userId });
       await Promise.all(assessments.map(a =>
-        base44.entities.SkillAssessment.update(a.id, { user_name: newName })
+        apiClient.entities.SkillAssessment.update(a.id, { user_name: newName })
       ));
 
-      await base44.entities.AuditLogEntry.create({
+      await apiClient.entities.AuditLogEntry.create({
         organisation_id: orgId,
         actor_user_id:   user?.id,
         actor_display:   user?.full_name,
