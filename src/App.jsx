@@ -88,6 +88,21 @@ const AuthenticatedApp = () => {
     );
   }
 
+  // Authenticated but no org yet — must complete onboarding
+  const { user } = useAuth();
+  if (user && !user.organisation_id) {
+    return (
+      <Routes>
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/cookies" element={<CookiePolicy />} />
+        <Route path="/dpa" element={<DataProcessingAgreement />} />
+        <Route path="*" element={<Navigate to="/onboarding" replace />} />
+      </Routes>
+    );
+  }
+
   // Render the main app
   return (
     <>

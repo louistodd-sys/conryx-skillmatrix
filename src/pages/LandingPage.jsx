@@ -82,43 +82,95 @@ const PLANS = [
 
 function SignInForm() {
   const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
+  const [step, setStep] = useState('email') // 'email' | 'code'
   const [loading, setLoading] = useState(false)
-  const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
 
-  async function handleSubmit(e) {
+  async function handleSendCode(e) {
     e.preventDefault()
     setError('')
     setLoading(true)
     const { error: err } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: window.location.origin },
+      options: { shouldCreateUser: true },
     })
     if (err) {
       setError(err.message)
     } else {
-      setSent(true)
+      setStep('code')
     }
     setLoading(false)
   }
 
-  if (sent) {
+  async function handleVerifyCode(e) {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    const { error: err } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: code.trim(),
+      type: 'email',
+    })
+    if (err) {
+      setError(err.message)
+      setCode('')
+    }
+    // On success, AuthContext onAuthStateChange fires and re-renders the app
+    setLoading(false)
+  }
+
+  if (step === 'code') {
     return (
-      <div className="text-center py-6">
-        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-          <CheckCircle2 className="w-6 h-6 text-green-600" />
+      <form onSubmit={handleVerifyCode} className="space-y-3">
+        <div className="text-center mb-4">
+          <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
+            <Lock className="w-5 h-5 text-blue-600" />
+          </div>
+          <p className="text-sm text-slate-600">
+            We sent a 6-digit code to <strong>{email}</strong>.<br />
+            Check your inbox (and junk folder).
+          </p>
         </div>
-        <h3 className="font-semibold text-lg mb-1">Check your inbox</h3>
-        <p className="text-sm text-slate-500">
-          We sent a magic link to <strong>{email}</strong>.<br />
-          Click it to sign in — no password needed.
-        </p>
-      </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">6-digit code</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]{6}"
+            maxLength={6}
+            required
+            autoFocus
+            value={code}
+            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder="123456"
+            className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        <button
+          type="submit"
+          disabled={loading || code.length !== 6}
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+        >
+          {loading
+            ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            : <>Verify & sign in <ArrowRight className="w-4 h-4" /></>
+          }
+        </button>
+        <button
+          type="button"
+          onClick={() => { setStep('email'); setCode(''); setError('') }}
+          className="w-full text-xs text-slate-400 hover:text-slate-600 py-1"
+        >
+          Use a different email
+        </button>
+      </form>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
+    <form onSubmit={handleSendCode} className="space-y-3">
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Work email</label>
         <input
@@ -136,11 +188,10 @@ function SignInForm() {
         disabled={loading || !email.trim()}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
       >
-        {loading ? (
-          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-        ) : (
-          <>Get started free <ArrowRight className="w-4 h-4" /></>
-        )}
+        {loading
+          ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          : <>Send verification code <ArrowRight className="w-4 h-4" /></>
+        }
       </button>
       <p className="text-xs text-center text-slate-400">No password required · Free plan available · Cancel anytime</p>
     </form>
