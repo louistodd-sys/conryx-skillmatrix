@@ -13,12 +13,22 @@ export async function getUser(req: Request) {
   const { data: { user }, error } = await supabase.auth.getUser(token)
   if (error || !user) throw new Error('Unauthorized')
 
-  // Get profile
+  // Get or create profile
   const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   )
-  const { data: profile } = await admin.from('users').select('*').eq('id', user.id).single()
+  const { data: profile } = await admin
+    .from('users')
+    .upsert({ id: user.id, email: user.email }, { onConflict: 'id', ignoreDuplicates: true })
+    .select()
+    .single()
+
+  if (!profile) {
+    // upsert with ignoreDuplicates won't return existing rows — fetch separately
+    const { data: existing } = await admin.from('users').select('*').eq('id', user.id).single()
+    return { ...user, ...existing }
+  }
 
   return { ...user, ...profile }
 }

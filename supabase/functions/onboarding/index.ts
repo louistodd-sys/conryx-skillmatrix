@@ -42,7 +42,6 @@ Deno.serve(async (req) => {
         name: org_name.trim(),
         subscription_tier: 'free',
         modules: ['skills_matrix'],
-        created_by: user.email,
       })
       .select()
       .single()
@@ -79,15 +78,16 @@ Deno.serve(async (req) => {
       console.error('Stripe customer creation failed:', stripeErr)
     }
 
-    // Update user profile: organisation_id, full_name, role
+    // Upsert user profile: handles case where signup trigger didn't create the row
     const { error: userError } = await admin
       .from('users')
-      .update({
+      .upsert({
+        id: user.id,
+        email: user.email,
         organisation_id: org.id,
         full_name: user_full_name || user.full_name || null,
         role: 'admin',
-      })
-      .eq('id', user.id)
+      }, { onConflict: 'id' })
 
     if (userError) {
       // Roll back org creation
