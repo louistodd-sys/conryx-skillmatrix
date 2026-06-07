@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabaseClient'
 import {
   Grid3X3, BarChart3, Users2, ShieldCheck, FileText,
-  CheckCircle2, ArrowRight, Zap, Lock, Download,
+  CheckCircle2, ArrowRight, Zap, Mail, Download,
   TrendingUp, Building2,
 } from 'lucide-react'
 
@@ -82,108 +82,58 @@ const PLANS = [
 
 
 function SignInForm() {
-  const [mode, setMode] = useState('email') // 'email' | 'code'
+  const [mode, setMode] = useState('email') // 'email' | 'sent'
   const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  async function handleSendCode(e) {
+  async function handleSendLink(e) {
     e.preventDefault()
     setError('')
     setLoading(true)
-    // Works for both new and existing users — creates account on first use
     const { error: err } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { shouldCreateUser: true },
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: `${window.location.origin}/`,
+      },
     })
     if (err) {
-      setError(err.message)
+      const msg = err.message?.toLowerCase() ?? ''
+      setError(
+        msg.includes('not found') || msg.includes('signup') || msg.includes('disabled')
+          ? 'No account found for this email. Please contact your administrator.'
+          : err.message
+      )
     } else {
-      setCode('')
-      setMode('code')
+      setMode('sent')
     }
     setLoading(false)
   }
 
-  async function handleVerify(e) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    const { error: err } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token: code.trim(),
-      type: 'email',
-    })
-    if (err) {
-      setError(err.message)
-      setCode('')
-    }
-    // On success AuthContext onAuthStateChange fires and re-renders
-    setLoading(false)
-  }
-
-  // ── Step 2: enter 6-digit code ────────────────────────────────
-  if (mode === 'code') {
+  if (mode === 'sent') {
     return (
-      <form onSubmit={handleVerify} className="space-y-4">
+      <div className="text-center space-y-4">
+        <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto">
+          <Mail className="w-5 h-5 text-blue-600" />
+        </div>
+        <h3 className="font-bold text-base">Check your email</h3>
+        <p className="text-sm text-slate-500">
+          We've sent a sign-in link to <strong>{email}</strong>. Click the link to access your account.
+        </p>
         <button
           type="button"
           onClick={() => { setMode('email'); setError('') }}
-          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-2"
+          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
         >
-          <ArrowRight className="w-3.5 h-3.5 rotate-180" /> Change email
+          Use a different email
         </button>
-        <div className="text-center mb-2">
-          <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
-            <Lock className="w-5 h-5 text-blue-600" />
-          </div>
-          <h3 className="font-bold text-base mb-1">Check your email</h3>
-          <p className="text-sm text-slate-500">
-            We sent a 6-digit code to <strong>{email}</strong>.
-          </p>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Verification code</label>
-          <input
-            type="text"
-            inputMode="numeric"
-            maxLength={6}
-            required
-            autoFocus
-            value={code}
-            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            placeholder="123456"
-            className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading || code.length < 6}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-        >
-          {loading
-            ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            : <>Continue <ArrowRight className="w-4 h-4" /></>}
-        </button>
-        <p className="text-xs text-center text-slate-400">
-          Didn't receive it?{' '}
-          <button
-            type="button"
-            onClick={handleSendCode}
-            className="text-blue-600 hover:text-blue-700 font-medium"
-          >
-            Resend code
-          </button>
-        </p>
-      </form>
+      </div>
     )
   }
 
-  // ── Step 1: enter email ───────────────────────────────────────
   return (
-    <form onSubmit={handleSendCode} className="space-y-4">
+    <form onSubmit={handleSendLink} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Email address</label>
         <input
@@ -205,9 +155,9 @@ function SignInForm() {
       >
         {loading
           ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          : <>Continue <ArrowRight className="w-4 h-4" /></>}
+          : <>Send sign-in link <ArrowRight className="w-4 h-4" /></>}
       </button>
-      <p className="text-xs text-center text-slate-400">New here? We'll create your account automatically.</p>
+      <p className="text-xs text-center text-slate-400">Access is by invitation only. Contact your admin if you need access.</p>
     </form>
   )
 }
