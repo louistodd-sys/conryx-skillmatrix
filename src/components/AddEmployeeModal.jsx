@@ -60,7 +60,6 @@ export default function AddEmployeeModal({ orgId, teams, preselectedTeamId, onCl
           user_name: fullName,
           user_email: form.email.trim() || null,
           is_managed_member: true,
-          member_id: memberId,
         })
       ));
 

@@ -16,14 +16,20 @@ export default function useTierCheck() {
 
   const checkLimit = async (resource) => {
     setChecking(true);
-    const res = await apiClient.functions.invoke('checkTierLimit', { resource });
-    setChecking(false);
+    try {
+      const res = await apiClient.functions.invoke('checkTierLimit', { resource });
+      setChecking(false);
 
-    if (!res.data.allowed) {
-      setUpgradePrompt(res.data.upgrade_prompt);
-      return false;
+      if (!res?.data?.allowed) {
+        setUpgradePrompt(res?.data?.upgrade_prompt ?? null);
+        return false;
+      }
+      return true;
+    } catch {
+      // If the tier-check function is unavailable, allow the action to proceed
+      setChecking(false);
+      return true;
     }
-    return true;
   };
 
   const clearPrompt = () => setUpgradePrompt(null);

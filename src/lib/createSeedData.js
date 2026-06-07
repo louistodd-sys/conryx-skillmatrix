@@ -78,7 +78,6 @@ export async function createSeedData(orgId, userId) {
       user_name: EXAMPLE_MEMBER_NAME,
       user_email: null,
       is_managed_member: true,
-      member_id: memberId,
     });
 
     // ── 4. Set required skills for the team ─────────────────────────────────

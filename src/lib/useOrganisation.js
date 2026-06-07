@@ -14,12 +14,15 @@ export default function useOrganisation() {
   useEffect(() => {
     if (!authUser) return;
 
-    if (cachedOrg && cachedUser) {
+    if (cachedOrg && cachedUser && cachedUser.id === authUser.id) {
       setOrg(cachedOrg);
       setUser(cachedUser);
       setLoading(false);
       return;
     }
+    // Different user — clear stale cache
+    cachedOrg = null;
+    cachedUser = null;
 
     async function load() {
       try {
