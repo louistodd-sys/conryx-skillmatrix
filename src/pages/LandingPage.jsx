@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabaseClient'
 import {
   Grid3X3, BarChart3, Users2, ShieldCheck, FileText,
-  CheckCircle2, ArrowRight, Zap, Mail, Download,
+  CheckCircle2, ArrowRight, Zap, Lock, Eye, EyeOff, Download,
   TrendingUp, Building2,
 } from 'lucide-react'
 
@@ -82,58 +82,144 @@ const PLANS = [
 
 
 function SignInForm() {
-  const [mode, setMode] = useState('email') // 'email' | 'sent'
+  const [mode, setMode] = useState('signin') // 'signin' | 'signup' | 'verify'
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  async function handleSendLink(e) {
+  async function handleSignIn(e) {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { error: err } = await supabase.auth.signInWithOtp({
+    const { error: err } = await supabase.auth.signInWithPassword({
       email: email.trim(),
-      options: {
-        shouldCreateUser: false,
-        emailRedirectTo: `${window.location.origin}/`,
-      },
+      password,
+    })
+    if (err) setError(err.message)
+    // On success onAuthStateChange fires and re-renders
+    setLoading(false)
+  }
+
+  async function handleSignUp(e) {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    const { error: err } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
     })
     if (err) {
-      const msg = err.message?.toLowerCase() ?? ''
-      setError(
-        msg.includes('not found') || msg.includes('signup') || msg.includes('disabled')
-          ? 'No account found for this email. Please contact your administrator.'
-          : err.message
-      )
+      setError(err.message)
     } else {
-      setMode('sent')
+      setCode('')
+      setMode('verify')
     }
     setLoading(false)
   }
 
-  if (mode === 'sent') {
+  async function handleVerify(e) {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+    const { error: err } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: code.trim(),
+      type: 'signup',
+    })
+    if (err) {
+      setError(err.message)
+      setCode('')
+    }
+    // On success onAuthStateChange fires → user has no org → routed to onboarding
+    setLoading(false)
+  }
+
+  async function handleResend() {
+    setError('')
+    const { error: err } = await supabase.auth.resend({
+      type: 'signup',
+      email: email.trim(),
+    })
+    if (err) setError(err.message)
+  }
+
+  // ── Step 3: verify OTP sent after sign-up ─────────────────────
+  if (mode === 'verify') {
     return (
-      <div className="text-center space-y-4">
-        <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto">
-          <Mail className="w-5 h-5 text-blue-600" />
-        </div>
-        <h3 className="font-bold text-base">Check your email</h3>
-        <p className="text-sm text-slate-500">
-          We've sent a sign-in link to <strong>{email}</strong>. Click the link to access your account.
-        </p>
+      <form onSubmit={handleVerify} className="space-y-4">
         <button
           type="button"
-          onClick={() => { setMode('email'); setError('') }}
-          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+          onClick={() => { setMode('signup'); setError('') }}
+          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700"
         >
-          Use a different email
+          <ArrowRight className="w-3.5 h-3.5 rotate-180" /> Back
         </button>
-      </div>
+        <div className="text-center">
+          <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
+            <Lock className="w-5 h-5 text-blue-600" />
+          </div>
+          <h3 className="font-bold text-base mb-1">Check your email</h3>
+          <p className="text-sm text-slate-500">
+            We sent a 6-digit code to <strong>{email}</strong>. Enter it below to confirm your account.
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Verification code</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            required
+            autoFocus
+            value={code}
+            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder="123456"
+            className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        <button
+          type="submit"
+          disabled={loading || code.length < 6}
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+        >
+          {loading
+            ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            : <>Verify email <ArrowRight className="w-4 h-4" /></>}
+        </button>
+        <p className="text-xs text-center text-slate-400">
+          Didn't receive it?{' '}
+          <button type="button" onClick={handleResend} className="text-blue-600 hover:text-blue-700 font-medium">
+            Resend code
+          </button>
+        </p>
+      </form>
     )
   }
 
+  // ── Step 1 & 2: sign in or sign up with email + password ──────
   return (
-    <form onSubmit={handleSendLink} className="space-y-4">
+    <form onSubmit={mode === 'signin' ? handleSignIn : handleSignUp} className="space-y-4">
+      {/* Tab toggle */}
+      <div className="flex rounded-lg border border-slate-200 p-1 gap-1">
+        <button
+          type="button"
+          onClick={() => { setMode('signin'); setError('') }}
+          className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${mode === 'signin' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-slate-900'}`}
+        >
+          Sign in
+        </button>
+        <button
+          type="button"
+          onClick={() => { setMode('signup'); setError('') }}
+          className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${mode === 'signup' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-slate-900'}`}
+        >
+          Create account
+        </button>
+      </div>
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Email address</label>
         <input
@@ -147,17 +233,38 @@ function SignInForm() {
           className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+        <div className="relative">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            required
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder={mode === 'signup' ? 'Min. 8 characters' : '••••••••'}
+            minLength={mode === 'signup' ? 8 : undefined}
+            autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+            className="w-full border border-slate-300 rounded-lg px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(v => !v)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          >
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
+        </div>
+      </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button
         type="submit"
-        disabled={loading || !email.trim()}
+        disabled={loading || !email.trim() || !password}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
       >
         {loading
           ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          : <>Send sign-in link <ArrowRight className="w-4 h-4" /></>}
+          : <>{mode === 'signin' ? 'Sign in' : 'Create account'} <ArrowRight className="w-4 h-4" /></>}
       </button>
-      <p className="text-xs text-center text-slate-400">Access is by invitation only. Contact your admin if you need access.</p>
     </form>
   )
 }
