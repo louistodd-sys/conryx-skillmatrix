@@ -26,24 +26,11 @@ export const AuthProvider = ({ children }) => {
     // separate getSession() call — using both causes a double-fetch race.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        let merged = await fetchProfile(session.user);
+        const merged = await fetchProfile(session.user);
         if (!merged) {
-          // Profile row missing — trigger may have failed silently. Auto-create it
-          // so the user reaches onboarding rather than hitting a hard error screen.
-          const { error: upsertError } = await supabase.from('users').upsert({
-            id: session.user.id,
-            email: session.user.email,
-            full_name: session.user.user_metadata?.full_name ?? '',
-            role: 'admin',
-            status: 'active',
-          }, { onConflict: 'id' });
-          if (!upsertError) {
-            merged = await fetchProfile(session.user);
-          }
-        }
-        if (!merged) {
-          // Still no profile after auto-create attempt — genuinely blocked
-          setAuthError({ type: 'user_not_registered', message: 'Your account is not registered in this application.' });
+          // Auth user exists but no profile row (e.g. deleted from DB).
+          // Clear the stale session so the user lands on the landing page.
+          await supabase.auth.signOut();
           setUser(null);
           setIsAuthenticated(false);
         } else {
