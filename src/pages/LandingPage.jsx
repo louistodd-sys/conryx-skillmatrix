@@ -182,12 +182,12 @@ function SignInForm() {
           <input
             type="text"
             inputMode="numeric"
-            maxLength={6}
+            maxLength={8}
             required
             autoFocus
             value={code}
-            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            placeholder="123456"
+            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
+            placeholder="12345678"
             className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
