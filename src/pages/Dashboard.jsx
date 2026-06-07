@@ -14,6 +14,7 @@ import { getRAGStatus } from '@/lib/ragUtils';
 import { parseISO, differenceInDays, endOfWeek, endOfMonth, isBefore } from 'date-fns';
 
 import { getLatestAssessments } from '@/utils/assessmentUtils';
+import WelcomeTour, { TOUR_KEY } from '@/components/WelcomeTour';
 
 // ─── Onboarding Checklist ──────────────────────────────────────────────────
 function OnboardingChecklist({ org, assessmentCount, teamCount, skillCount, hasRequiredSkills, onDismiss }) {
@@ -177,10 +178,14 @@ export default function Dashboard() {
   const [checklistDismissed, setChecklistDismissed] = useState(
     () => localStorage.getItem(`checklist_dismissed_${org?.id}`) === 'true'
   );
+  const [showTour, setShowTour] = useState(false);
 
   useEffect(() => {
     if (!org) return;
     loadData();
+    if (org.onboarding_completed && localStorage.getItem(TOUR_KEY(org.id)) !== 'true') {
+      setShowTour(true);
+    }
   }, [org]);
 
   async function loadData() {
@@ -475,6 +480,8 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {showTour && <WelcomeTour onClose={() => setShowTour(false)} />}
     </div>
   );
 }

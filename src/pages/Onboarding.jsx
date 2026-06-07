@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, BookOpen, Users, Check, ArrowRight, ArrowLeft, Loader2, Zap, LogOut } from 'lucide-react';
 import { apiClient } from '@/api/apiClient';
+import { createSeedData } from '@/lib/createSeedData';
 import { useAuth } from '@/lib/AuthContext';
 import useOrganisation from '@/lib/useOrganisation';
 import { supabase } from '@/lib/supabaseClient';
@@ -148,6 +149,7 @@ export default function Onboarding() {
         });
       }
       await apiClient.entities.Organisation.update(orgId, { onboarding_completed: true, onboarding_step: 5 });
+      await createSeedData(orgId, user?.id);
       await refreshOrg();
       await refreshAuthUser();
       window.location.href = '/';
