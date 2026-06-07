@@ -49,10 +49,9 @@ import BrcDocumentDetail from './pages/brc/BrcDocumentDetail';
 import BrcGuide from './pages/brc/BrcGuide';
 import { BrcAuditDetail, BrcNonConformanceDetail, BrcSupplierDetail, BrcCalibrationDetail, BrcComplaintDetail } from './pages/brc/BrcStub';
 import { Navigate } from 'react-router-dom';
-import LoginPage from './lib/LoginPage';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, isAuthenticated, authError } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, isAuthenticated, authError, user } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -89,7 +88,6 @@ const AuthenticatedApp = () => {
   }
 
   // Authenticated but no org yet — must complete onboarding
-  const { user } = useAuth();
   if (user && !user.organisation_id) {
     return (
       <Routes>

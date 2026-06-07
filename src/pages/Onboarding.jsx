@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, BookOpen, Users, Send, Check, ArrowRight, ArrowLeft, Loader2, Zap, LogOut } from 'lucide-react';
+import { Building2, BookOpen, Users, Check, ArrowRight, ArrowLeft, Loader2, Zap, LogOut } from 'lucide-react';
 import { apiClient } from '@/api/apiClient';
+import { useAuth } from '@/lib/AuthContext';
 import useOrganisation from '@/lib/useOrganisation';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,6 @@ const steps = [
   { icon: Zap,       label: 'Plan'         },
   { icon: BookOpen,  label: 'Skills'       },
   { icon: Users,     label: 'Team'         },
-  { icon: Send,      label: 'Invite'       },
 ];
 
 const PLAN_OPTIONS = [
@@ -45,6 +45,7 @@ const PLAN_OPTIONS = [
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const { refreshUser: refreshAuthUser } = useAuth();
   const { user, refreshUser, refreshOrg } = useOrganisation();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -61,9 +62,6 @@ export default function Onboarding() {
 
   // Step 4 — Team
   const [teamName, setTeamName] = useState('');
-
-  // Step 5 — Invite
-  const [inviteEmails, setInviteEmails] = useState('');
 
   const [orgId, setOrgId] = useState(null);
 
@@ -143,49 +141,20 @@ export default function Onboarding() {
   const handleStep4 = async () => {
     if (!orgId) return;
     setLoading(true);
-    if (teamName.trim()) {
-      await apiClient.entities.Team.create({
-        organisation_id: orgId, name: teamName.trim(), manager_ids: [user?.id],
-      });
-    }
-    await apiClient.entities.Organisation.update(orgId, { onboarding_step: 5 });
-    setLoading(false);
-    setStep(5);
-  };
-
-  const handleStep5 = async () => {
-    setLoading(true);
-    if (inviteEmails.trim()) {
-      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const emails = inviteEmails.split(/[,\n]/).map(e => e.trim()).filter(Boolean);
-      const invalid = emails.filter(e => !emailRe.test(e));
-      if (invalid.length) {
-        toast.error(`Invalid email${invalid.length > 1 ? 's' : ''}: ${invalid.join(', ')}`);
-        setLoading(false);
-        return;
+    try {
+      if (teamName.trim()) {
+        await apiClient.entities.Team.create({
+          organisation_id: orgId, name: teamName.trim(), manager_ids: [user?.id],
+        });
       }
-      for (const email of emails) {
-        try {
-          await apiClient.entities.Invitation.create({
-            organisation_id: orgId, email, role: 'viewer',
-            invited_by_user_id: user?.id, invited_by_name: user?.full_name, status: 'pending',
-          });
-          await apiClient.users.inviteUser(email, 'user');
-        } catch {
-          toast.error(`Failed to invite ${email}`);
-        }
-      }
+      await apiClient.entities.Organisation.update(orgId, { onboarding_completed: true, onboarding_step: 5 });
+      await refreshOrg();
+      await refreshAuthUser();
+      window.location.href = '/';
+    } catch (err) {
+      toast.error(err.message || 'Could not complete setup — please try again.');
+      setLoading(false);
     }
-    await apiClient.entities.Organisation.update(orgId, { onboarding_completed: true, onboarding_step: 6 });
-    // Send welcome email
-    await apiClient.functions.invoke('sendWelcomeEmail', {
-      user_email: user?.email,
-      user_name: user?.full_name,
-      org_name: orgName,
-    }).catch(() => {});
-    await refreshOrg();
-    setLoading(false);
-    navigate('/');
   };
 
   return (
@@ -210,7 +179,7 @@ export default function Onboarding() {
                 {step > i + 1 ? <Check className="w-3.5 h-3.5" /> : i + 1}
               </div>
               <span className="text-xs text-muted-foreground hidden sm:block mr-1">{s.label}</span>
-              {i < 4 && <div className={`w-6 h-0.5 ${step > i + 1 ? 'bg-green-500' : 'bg-border'}`} />}
+              {i < 3 && <div className={`w-6 h-0.5 ${step > i + 1 ? 'bg-green-500' : 'bg-border'}`} />}
             </div>
           ))}
         </div>
@@ -358,34 +327,7 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* Step 5: Invite */}
-          {step === 5 && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <Send className="w-6 h-6 text-primary" />
-                </div>
-                <h2 className="text-xl font-bold">Invite your team</h2>
-                <p className="text-sm text-muted-foreground mt-1">Add email addresses of people you'd like to invite</p>
-              </div>
-              <div>
-                <Label>Email Addresses</Label>
-                <textarea
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1 resize-none"
-                  rows={4}
-                  value={inviteEmails}
-                  onChange={e => setInviteEmails(e.target.value)}
-                  placeholder="Enter emails, one per line or comma-separated"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep(4)}><ArrowLeft className="w-4 h-4 mr-1" /> Back</Button>
-                <Button className="flex-1" onClick={handleStep5} disabled={loading}>
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : inviteEmails.trim() ? <>Send Invites & Finish</> : <>Finish Setup</>}
-                </Button>
-              </div>
-            </div>
-          )}
+
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-4">

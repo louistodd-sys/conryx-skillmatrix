@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
 const AuthContext = createContext();
@@ -17,35 +17,44 @@ export const AuthProvider = ({ children }) => {
       .select('id, email, role, organisation_id, full_name, status')
       .eq('id', authUser.id)
       .single();
-    return profile ? { ...authUser, ...profile } : authUser;
+    return profile ? { ...authUser, ...profile } : null;
   };
 
   useEffect(() => {
-    // Check for existing session on mount
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // onAuthStateChange fires INITIAL_SESSION on subscribe, so no need for a
+    // separate getSession() call — using both causes a double-fetch race.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         const merged = await fetchProfile(session.user);
-        setUser(merged);
-        setIsAuthenticated(true);
+        if (!merged) {
+          // Auth user exists but no profile row — trigger may have failed
+          setAuthError({ type: 'user_not_registered', message: 'Your account is not registered in this application.' });
+          setUser(null);
+          setIsAuthenticated(false);
+        } else {
+          setAuthError(null);
+          setUser(merged);
+          setIsAuthenticated(true);
+        }
       } else {
+        setUser(null);
         setIsAuthenticated(false);
       }
       setIsLoadingAuth(false);
     });
 
-    // Subscribe to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const merged = await fetchProfile(session.user);
-        setUser(merged);
-        setIsAuthenticated(true);
-      } else {
-        setUser(null);
-        setIsAuthenticated(false);
-      }
-    });
-
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Call this after any operation that updates the user's profile (e.g., onboarding)
+  const refreshUser = useCallback(async () => {
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) return;
+    const merged = await fetchProfile(authUser);
+    if (merged) {
+      setUser(merged);
+      setIsAuthenticated(true);
+    }
   }, []);
 
   const logout = async () => {
@@ -55,11 +64,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const navigateToLogin = () => {
-    // No-op: App.jsx route guards handle redirect to /login
+    // No-op: App.jsx route guards handle redirect to landing
   };
 
   const checkAppState = () => {
-    // No-op: replaced by Supabase session check in useEffect
+    // No-op: replaced by Supabase session check via onAuthStateChange
   };
 
   return (
@@ -73,6 +82,7 @@ export const AuthProvider = ({ children }) => {
       logout,
       navigateToLogin,
       checkAppState,
+      refreshUser,
     }}>
       {children}
     </AuthContext.Provider>

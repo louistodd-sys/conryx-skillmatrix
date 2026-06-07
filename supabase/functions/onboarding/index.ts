@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
         id: user.id,
         email: user.email,
         organisation_id: org.id,
-        full_name: user_full_name || user.full_name || null,
+        full_name: user_full_name || user.full_name || '',
         role: 'admin',
       }, { onConflict: 'id' })
 
