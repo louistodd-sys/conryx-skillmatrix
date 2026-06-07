@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, BookOpen, Users, Send, Check, ArrowRight, ArrowLeft, Loader2, Zap, LogOut } from 'lucide-react';
 import { apiClient } from '@/api/apiClient';
+import { useAuth } from '@/lib/AuthContext';
 import useOrganisation from '@/lib/useOrganisation';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ const PLAN_OPTIONS = [
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const { refreshUser: refreshAuthUser } = useAuth();
   const { user, refreshUser, refreshOrg } = useOrganisation();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -184,6 +186,7 @@ export default function Onboarding() {
       org_name: orgName,
     }).catch(() => {});
     await refreshOrg();
+    await refreshAuthUser();
     setLoading(false);
     navigate('/');
   };
