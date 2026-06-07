@@ -12,11 +12,12 @@ export const AuthProvider = ({ children }) => {
 
   const fetchProfile = async (authUser) => {
     if (!authUser) return null;
-    const { data: profile } = await supabase
+    const { data: profile, error } = await supabase
       .from('users')
       .select('id, email, role, organisation_id, full_name, status')
       .eq('id', authUser.id)
       .single();
+    if (error) console.error('fetchProfile error:', error.message);
     return profile ? { ...authUser, ...profile } : null;
   };
 

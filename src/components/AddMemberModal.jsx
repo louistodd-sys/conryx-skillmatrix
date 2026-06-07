@@ -8,9 +8,10 @@ export default function AddMemberModal({ teamId, orgId, existingMemberIds, onClo
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [adding, setAdding] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    apiClient.entities.User.filter({ organisation_id: orgId }).then(setUsers);
+    apiClient.entities.User.filter({ organisation_id: orgId }).then(setUsers).catch(() => {});
   }, [orgId]);
 
   const available = users.filter(u =>
@@ -21,16 +22,23 @@ export default function AddMemberModal({ teamId, orgId, existingMemberIds, onClo
 
   const addUser = async (user) => {
     setAdding(user.id);
-    await apiClient.entities.TeamMember.create({
-      organisation_id: orgId,
-      team_id: teamId,
-      user_id: user.id,
-      user_email: user.email,
-      user_name: user.full_name,
-    });
-    setAdding(null);
-    onSaved();
-    onClose();
+    setError('');
+    try {
+      await apiClient.entities.TeamMember.create({
+        organisation_id: orgId,
+        team_id: teamId,
+        user_id: user.id,
+        user_email: user.email,
+        user_name: user.full_name,
+        is_managed_member: false,
+      });
+      setAdding(null);
+      onSaved();
+      onClose();
+    } catch (err) {
+      setError('Failed to add member — please try again.');
+      setAdding(null);
+    }
   };
 
   return (
@@ -46,6 +54,9 @@ export default function AddMemberModal({ teamId, orgId, existingMemberIds, onClo
             <Input placeholder="Search users..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
           </div>
         </div>
+        {error && (
+          <p className="px-5 py-2 text-sm text-destructive bg-destructive/5 border-b border-border">{error}</p>
+        )}
         <div className="flex-1 overflow-y-auto divide-y divide-border">
           {available.length === 0 ? (
             <p className="p-4 text-center text-sm text-muted-foreground">No users available to add</p>
