@@ -85,7 +85,9 @@ function SignInForm() {
   const [mode, setMode] = useState('signin') // 'signin' | 'signup' | 'verify'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -106,14 +108,23 @@ function SignInForm() {
   async function handleSignUp(e) {
     e.preventDefault()
     setError('')
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
     setLoading(true)
-    const { error: err } = await supabase.auth.signUp({
+    const { data, error: err } = await supabase.auth.signUp({
       email: email.trim(),
       password,
     })
     if (err) {
       setError(err.message)
+    } else if (data.session) {
+      // Email confirmation is disabled on this Supabase project — user is
+      // immediately signed in. onAuthStateChange routes to onboarding.
+      // To enforce OTP: enable "Confirm email" in Supabase Auth settings.
     } else {
+      // Email confirmation required — show OTP entry
       setCode('')
       setMode('verify')
     }
@@ -255,10 +266,33 @@ function SignInForm() {
           </button>
         </div>
       </div>
+      {mode === 'signup' && (
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">Confirm Password</label>
+          <div className="relative">
+            <input
+              type={showConfirm ? 'text' : 'password'}
+              required
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              placeholder="Re-enter password"
+              autoComplete="new-password"
+              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm(v => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            >
+              {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+      )}
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button
         type="submit"
-        disabled={loading || !email.trim() || !password}
+        disabled={loading || !email.trim() || !password || (mode === 'signup' && !confirmPassword)}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
       >
         {loading
