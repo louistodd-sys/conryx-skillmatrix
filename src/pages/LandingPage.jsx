@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabaseClient'
 import {
   Grid3X3, BarChart3, Users2, ShieldCheck, FileText,
   CheckCircle2, ArrowRight, Zap, Lock, Download,
-  TrendingUp, Building2, Eye, EyeOff,
+  TrendingUp, Building2,
 } from 'lucide-react'
 
 const FEATURES = [
@@ -80,82 +80,28 @@ const PLANS = [
   },
 ]
 
-function PasswordInput({ value, onChange, placeholder, autoComplete }) {
-  const [show, setShow] = useState(false)
-  return (
-    <div className="relative">
-      <input
-        type={show ? 'text' : 'password'}
-        required
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        minLength={8}
-        className="w-full border border-slate-300 rounded-lg px-4 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      />
-      <button
-        type="button"
-        onClick={() => setShow(s => !s)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-        tabIndex={-1}
-      >
-        {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-      </button>
-    </div>
-  )
-}
 
 function SignInForm() {
-  const [mode, setMode] = useState('signin') // 'signin' | 'signup' | 'verify'
+  const [mode, setMode] = useState('email') // 'email' | 'code'
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  function reset(newMode) {
-    setMode(newMode)
-    setPassword('')
-    setConfirmPassword('')
-    setCode('')
-    setError('')
-  }
-
-  async function handleSignIn(e) {
+  async function handleSendCode(e) {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { error: err } = await supabase.auth.signInWithPassword({
+    // Works for both new and existing users — creates account on first use
+    const { error: err } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      password,
-    })
-    if (err) setError(err.message)
-    // On success AuthContext fires and re-renders
-    setLoading(false)
-  }
-
-  async function handleSignUp(e) {
-    e.preventDefault()
-    setError('')
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters')
-      return
-    }
-    setLoading(true)
-    const { error: err } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
+      options: { shouldCreateUser: true },
     })
     if (err) {
       setError(err.message)
     } else {
-      setMode('verify')
+      setCode('')
+      setMode('code')
     }
     setLoading(false)
   }
@@ -167,26 +113,26 @@ function SignInForm() {
     const { error: err } = await supabase.auth.verifyOtp({
       email: email.trim(),
       token: code.trim(),
-      type: 'signup',
+      type: 'email',
     })
     if (err) {
       setError(err.message)
       setCode('')
     }
-    // On success AuthContext fires and re-renders
+    // On success AuthContext onAuthStateChange fires and re-renders
     setLoading(false)
   }
 
-  // ── Verify email step ─────────────────────────────────────────
-  if (mode === 'verify') {
+  // ── Step 2: enter 6-digit code ────────────────────────────────
+  if (mode === 'code') {
     return (
       <form onSubmit={handleVerify} className="space-y-4">
         <button
           type="button"
-          onClick={() => reset('signup')}
+          onClick={() => { setMode('email'); setError('') }}
           className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-2"
         >
-          <ArrowRight className="w-3.5 h-3.5 rotate-180" /> Back to sign up
+          <ArrowRight className="w-3.5 h-3.5 rotate-180" /> Change email
         </button>
         <div className="text-center mb-2">
           <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -194,7 +140,7 @@ function SignInForm() {
           </div>
           <h3 className="font-bold text-base mb-1">Check your email</h3>
           <p className="text-sm text-slate-500">
-            We sent a verification code to <strong>{email}</strong>.
+            We sent a 6-digit code to <strong>{email}</strong>.
           </p>
         </div>
         <div>
@@ -202,12 +148,12 @@ function SignInForm() {
           <input
             type="text"
             inputMode="numeric"
-            maxLength={8}
+            maxLength={6}
             required
             autoFocus
             value={code}
-            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
-            placeholder="12345678"
+            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder="123456"
             className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -219,77 +165,31 @@ function SignInForm() {
         >
           {loading
             ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            : <>Verify email &amp; continue <ArrowRight className="w-4 h-4" /></>}
+            : <>Continue <ArrowRight className="w-4 h-4" /></>}
         </button>
+        <p className="text-xs text-center text-slate-400">
+          Didn't receive it?{' '}
+          <button
+            type="button"
+            onClick={handleSendCode}
+            className="text-blue-600 hover:text-blue-700 font-medium"
+          >
+            Resend code
+          </button>
+        </p>
       </form>
     )
   }
 
-  // ── Sign Up ───────────────────────────────────────────────────
-  if (mode === 'signup') {
-    return (
-      <form onSubmit={handleSignUp} className="space-y-4">
-        <button
-          type="button"
-          onClick={() => reset('signin')}
-          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-2"
-        >
-          <ArrowRight className="w-3.5 h-3.5 rotate-180" /> Back to sign in
-        </button>
-        <h3 className="font-bold text-lg">Create your account</h3>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            autoComplete="email"
-            className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-          <PasswordInput
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Min. 8 characters"
-            autoComplete="new-password"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Confirm Password</label>
-          <PasswordInput
-            value={confirmPassword}
-            onChange={e => setConfirmPassword(e.target.value)}
-            placeholder="Re-enter password"
-            autoComplete="new-password"
-          />
-        </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading || !email.trim() || !password || !confirmPassword}
-          className="w-full bg-slate-900 hover:bg-slate-700 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-        >
-          {loading
-            ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            : 'Create account'}
-        </button>
-        <p className="text-xs text-center text-slate-400">Free plan available · Cancel anytime</p>
-      </form>
-    )
-  }
-
-  // ── Sign In ───────────────────────────────────────────────────
+  // ── Step 1: enter email ───────────────────────────────────────
   return (
-    <form onSubmit={handleSignIn} className="space-y-4">
+    <form onSubmit={handleSendCode} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1">Email address</label>
         <input
           type="email"
           required
+          autoFocus
           value={email}
           onChange={e => setEmail(e.target.value)}
           placeholder="you@company.com"
@@ -297,35 +197,17 @@ function SignInForm() {
           className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-        <PasswordInput
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          placeholder="Your password"
-          autoComplete="current-password"
-        />
-      </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button
         type="submit"
-        disabled={loading || !email.trim() || !password}
+        disabled={loading || !email.trim()}
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
       >
         {loading
           ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          : <>Sign in <ArrowRight className="w-4 h-4" /></>}
+          : <>Continue <ArrowRight className="w-4 h-4" /></>}
       </button>
-      <div className="text-center">
-        <span className="text-sm text-slate-500">Don't have an account? </span>
-        <button
-          type="button"
-          onClick={() => reset('signup')}
-          className="text-sm font-medium text-blue-600 hover:text-blue-700"
-        >
-          Create one free
-        </button>
-      </div>
+      <p className="text-xs text-center text-slate-400">New here? We'll create your account automatically.</p>
     </form>
   )
 }
