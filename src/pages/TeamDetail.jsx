@@ -11,6 +11,8 @@ import AddMemberModal from '@/components/AddMemberModal';
 import AddEmployeeModal from '@/components/AddEmployeeModal';
 import ManageRequiredSkillsModal from '@/components/ManageRequiredSkillsModal';
 import { getRAGStatus } from '@/lib/ragUtils';
+import useTierCheck from '@/hooks/useTierCheck';
+import UpgradePromptModal from '@/components/UpgradePromptModal';
 
 // Inline confirmation modal (replaces browser confirm())
 function ConfirmRemoveModal({ memberName, onConfirm, onClose }) {
@@ -66,6 +68,17 @@ export default function TeamDetail() {
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [showReqSkills, setShowReqSkills]   = useState(false);
   const [removingMember, setRemovingMember] = useState(null);
+  const { checking: tierChecking, upgradePrompt, checkLimit, clearPrompt } = useTierCheck();
+
+  async function handleAddEmployeeClick() {
+    const allowed = await checkLimit('employee');
+    if (allowed) setShowAddEmployee(true);
+  }
+
+  async function handleAddMemberClick() {
+    const allowed = await checkLimit('employee');
+    if (allowed) setShowAddMember(true);
+  }
 
   useEffect(() => {
     if (org) loadData();
@@ -152,10 +165,10 @@ export default function TeamDetail() {
             <Button variant="outline" size="sm" onClick={() => setShowReqSkills(true)}>
               <Settings2 className="w-4 h-4 mr-1.5" /> Required Skills
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setShowAddEmployee(true)}>
+            <Button variant="outline" size="sm" onClick={handleAddEmployeeClick} disabled={tierChecking}>
               <Plus className="w-4 h-4 mr-1.5" /> Add Employee
             </Button>
-            <Button size="sm" onClick={() => setShowAddMember(true)}>
+            <Button size="sm" onClick={handleAddMemberClick} disabled={tierChecking}>
               <Plus className="w-4 h-4 mr-1.5" /> Add Existing User
             </Button>
           </div>
@@ -262,6 +275,7 @@ export default function TeamDetail() {
       </div>
 
       {/* Modals */}
+      {upgradePrompt && <UpgradePromptModal prompt={upgradePrompt} onClose={clearPrompt} />}
       {showAddMember && (
         <AddMemberModal
           teamId={teamId}
