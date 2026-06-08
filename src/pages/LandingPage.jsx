@@ -17,7 +17,7 @@ const PRODUCTS = [
     iconBg: 'bg-blue-600',
     label: 'Skills Matrix',
     tagline: 'Workforce competency & training management',
-    desc: 'See exactly who can do what. Map every employee's skills against what's required, spot training gaps instantly, and prove competence during audits — all without spreadsheets.',
+      desc: "See exactly who can do what. Map every employee's skills against what's required, spot training gaps instantly, and prove competence during audits — all without spreadsheets.",
     bullets: [
       'Visual colour-coded skills matrix (RAG status)',
       'Gap analysis ranked by urgency',
