@@ -20,6 +20,9 @@ export function getRAGStatus(assessment, skill, teamRequirement) {
   const { proficiency_level, expiry_date } = assessment;
   const today = new Date();
 
+  // Level 0 = "Not Trained" — always a gap regardless of team requirements
+  if (Number(proficiency_level ?? 0) === 0) return 'red';
+
   if (expiry_date) {
     const expDate = parseISO(expiry_date);
     if (isValid(expDate)) {
