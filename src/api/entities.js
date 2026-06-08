@@ -95,4 +95,6 @@ export const entities = {
   BRCPestControlVisit: makeEntity('brc_pest_control_visits'),
   BRCDocument: makeEntity('brc_documents'),
   BRCDocumentVersion: makeEntity('brc_document_versions'),
+  SkillTemplate: makeEntity('skill_templates'),
+  SkillTemplateSkill: makeEntity('skill_template_skills'),
 }

@@ -26,6 +26,7 @@ import TermsOfService from './pages/TermsOfService';
 import CookiePolicy from './pages/CookiePolicy';
 import DataProcessingAgreement from './pages/DataProcessingAgreement';
 import CookieConsentBanner from './components/CookieConsentBanner';
+import JobRolesPage from './pages/JobRolesPage';
 import UpgradeBrc from './pages/UpgradeBrc';
 import BrcDashboard from './pages/brc/BrcDashboard';
 import BrcClauses from './pages/brc/BrcClauses';
@@ -121,6 +122,7 @@ const AuthenticatedApp = () => {
           <Route path="/people" element={<People />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/users/:userId" element={<UserProfile />} />
+          <Route path="/job-roles" element={<JobRolesPage />} />
           <Route path="/skills-library" element={<SkillsLibrary />} />
           <Route path="/audit-log" element={<AuditLog />} />
           <Route path="/settings" element={<Settings />} />

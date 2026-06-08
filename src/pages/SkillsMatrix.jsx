@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Grid3X3, Search, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { Grid3X3, Search, Users } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
@@ -41,35 +41,25 @@ function pctStyle(pct) {
 
 // ─── Status key legend ─────────────────────────────────────────────────────
 function MatrixLegend() {
-  const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-xl border border-border bg-card shadow-sm">
-      <button
-        className="w-full flex items-center justify-between px-5 py-3 text-left"
-        onClick={() => setOpen(o => !o)}
-      >
-        <div className="flex items-center gap-4 flex-wrap">
-          {[['green','Current','#16a34a'],['amber','Expiring','#d97706'],['red','Gap','#dc2626'],['grey','Not Required','#94a3b8']].map(([s,label,bg]) => (
-            <div key={s} className="flex items-center gap-1.5">
-              <div className="w-5 h-5 rounded" style={{ background: bg }} />
-              <span className="text-xs font-medium text-foreground">{label}</span>
-            </div>
-          ))}
-        </div>
-        <span className="text-xs text-muted-foreground flex items-center gap-1 shrink-0 ml-4">
-          {open ? <><ChevronUp className="w-3.5 h-3.5" /> Hide guide</> : <><ChevronDown className="w-3.5 h-3.5" /> Show guide</>}
-        </span>
-      </button>
-      {open && (
-        <div className="px-5 pb-4 pt-1 border-t border-border space-y-2">
-          <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
-            <span><span className="font-semibold text-foreground">0–4</span> = Proficiency level</span>
-            <span><span className="font-semibold text-foreground">✓</span> = Competent (binary skill)</span>
-            <span><span className="font-semibold text-foreground">—</span> = Not yet assessed</span>
+    <div className="rounded-xl border border-border bg-card shadow-sm px-5 py-3 space-y-2">
+      <div className="flex items-center gap-4 flex-wrap">
+        {[['green','Current','#16a34a'],['amber','Expiring Soon','#d97706'],['red','Gap / Required','#dc2626'],['grey','Not Required','#94a3b8']].map(([s,label,bg]) => (
+          <div key={s} className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded" style={{ background: bg }} />
+            <span className="text-xs font-medium text-foreground">{label}</span>
           </div>
-          <div className="text-xs text-muted-foreground">0 Not trained · 1 Awareness · 2 Working knowledge · 3 Competent · 4 Expert</div>
-        </div>
-      )}
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-x-5 gap-y-0.5 text-xs text-muted-foreground border-t border-border pt-2">
+        <span><span className="font-semibold text-foreground">0</span> Not Trained</span>
+        <span><span className="font-semibold text-foreground">1</span> Awareness</span>
+        <span><span className="font-semibold text-foreground">2</span> Working Knowledge</span>
+        <span><span className="font-semibold text-foreground">3</span> Competent</span>
+        <span><span className="font-semibold text-foreground">4</span> Expert</span>
+        <span className="ml-2"><span className="font-semibold text-foreground">✓</span> Competent (binary)</span>
+        <span><span className="font-semibold text-foreground">—</span> Not Assessed</span>
+      </div>
     </div>
   );
 }
@@ -746,16 +736,22 @@ export default function SkillsMatrix() {
           orgId={org.id}
           onClose={() => setAssessingCell(null)}
           onSaved={(savedAssessment) => {
-            // Optimistically update the local assessments state so the cell reflects
-            // the change immediately, before the background reload completes
-            setAssessments(prev => {
-              const without = prev.filter(a =>
-                !(a.user_id === savedAssessment.user_id && a.skill_id === savedAssessment.skill_id)
-              );
-              return [...without, savedAssessment];
-            });
+            if (savedAssessment === null) {
+              // Assessment cleared (Not Required) — remove from local state
+              setAssessments(prev => prev.filter(a =>
+                !(a.user_id === assessingCell.userId && a.skill_id === assessingCell.skill.id)
+              ));
+            } else {
+              // Optimistic update
+              setAssessments(prev => {
+                const without = prev.filter(a =>
+                  !(a.user_id === savedAssessment.user_id && a.skill_id === savedAssessment.skill_id)
+                );
+                return [...without, savedAssessment];
+              });
+            }
             setAssessingCell(null);
-            loadData(); // background refresh to stay in sync
+            loadData();
           }}
         />
       )}

@@ -1,21 +1,28 @@
 import { useState, useEffect } from 'react';
-import { X, Check } from 'lucide-react';
+import { X, Check, Briefcase } from 'lucide-react';
 import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 
 export default function ManageRequiredSkillsModal({ teamId, orgId, existingReqSkills, onClose, onSaved }) {
-  const [skills, setSkills] = useState([]);
+  const [skills, setSkills]         = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selected, setSelected] = useState(new Set(existingReqSkills.filter(r => r.is_required).map(r => r.skill_id)));
-  const [saving, setSaving] = useState(false);
+  const [templates, setTemplates]   = useState([]);
+  const [templateSkills, setTemplateSkills] = useState([]);
+  const [selected, setSelected]     = useState(new Set(existingReqSkills.filter(r => r.is_required).map(r => r.skill_id)));
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [saving, setSaving]         = useState(false);
 
   useEffect(() => {
     Promise.all([
       apiClient.entities.Skill.filter({ organisation_id: orgId, status: 'active' }),
       apiClient.entities.SkillCategory.filter({ organisation_id: orgId }),
-    ]).then(([s, c]) => {
+      apiClient.entities.SkillTemplate.filter({ organisation_id: orgId }),
+      apiClient.entities.SkillTemplateSkill.filter({ organisation_id: orgId }),
+    ]).then(([s, c, t, ts]) => {
       setSkills(s);
-      setCategories(c);
+      setCategories(c.sort((a, b) => (a.display_order || 0) - (b.display_order || 0)));
+      setTemplates(t.sort((a, b) => a.name.localeCompare(b.name)));
+      setTemplateSkills(ts);
     });
   }, [orgId]);
 
@@ -26,11 +33,18 @@ export default function ManageRequiredSkillsModal({ teamId, orgId, existingReqSk
     setSelected(next);
   };
 
+  const applyTemplate = () => {
+    if (!selectedTemplate) return;
+    const tmplSkills = templateSkills.filter(ts => ts.template_id === selectedTemplate);
+    const next = new Set(selected);
+    tmplSkills.forEach(ts => next.add(ts.skill_id));
+    setSelected(next);
+    setSelectedTemplate('');
+  };
+
   const handleSave = async () => {
     setSaving(true);
-    // Delete existing
     await Promise.all(existingReqSkills.map(r => apiClient.entities.TeamRequiredSkill.delete(r.id)));
-    // Create new
     const toCreate = [...selected].map(skillId => ({
       organisation_id: orgId,
       team_id: teamId,
@@ -46,10 +60,9 @@ export default function ManageRequiredSkillsModal({ teamId, orgId, existingReqSk
     onClose();
   };
 
-  const grouped = categories.map(cat => ({
-    ...cat,
-    skills: skills.filter(s => s.category_id === cat.id),
-  })).filter(g => g.skills.length > 0);
+  const grouped = categories
+    .map(cat => ({ ...cat, skills: skills.filter(s => s.category_id === cat.id) }))
+    .filter(g => g.skills.length > 0);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -58,8 +71,42 @@ export default function ManageRequiredSkillsModal({ teamId, orgId, existingReqSk
           <h2 className="text-base font-semibold">Required Skills for Team</h2>
           <button onClick={onClose}><X className="w-4 h-4 text-muted-foreground" /></button>
         </div>
+
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          {/* Apply template banner */}
+          {templates.length > 0 && (
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Briefcase className="w-3.5 h-3.5 text-primary shrink-0" />
+                <span className="text-xs font-semibold text-primary">Load from Job Role Template</span>
+              </div>
+              <div className="flex gap-2">
+                <select
+                  className="flex-1 h-8 rounded-md border border-input bg-background px-2 text-sm"
+                  value={selectedTemplate}
+                  onChange={e => setSelectedTemplate(e.target.value)}
+                >
+                  <option value="">Select a template…</option>
+                  {templates.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={applyTemplate}
+                  disabled={!selectedTemplate}
+                  className="shrink-0"
+                >
+                  Apply
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1.5">Adds the template's skills to your current selection — you can still customise after.</p>
+            </div>
+          )}
+
           <p className="text-sm text-muted-foreground">Select which skills are required for this team. These will be used in gap analysis and compliance tracking.</p>
+
           {grouped.map(cat => (
             <div key={cat.id}>
               <div className="flex items-center gap-2 mb-2">
@@ -79,6 +126,7 @@ export default function ManageRequiredSkillsModal({ teamId, orgId, existingReqSk
             </div>
           ))}
         </div>
+
         <div className="flex justify-between items-center px-5 py-4 border-t border-border shrink-0">
           <span className="text-xs text-muted-foreground">{selected.size} skills selected</span>
           <div className="flex gap-2">

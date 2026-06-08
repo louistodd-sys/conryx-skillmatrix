@@ -6,7 +6,7 @@ import {
   BookOpen, ScrollText, Settings, Bell, Menu, X, LogOut,
   ShieldCheck, FileText, ClipboardList, AlertTriangle, Truck,
   Wrench, MessageSquare, FlaskConical, Bug, GraduationCap,
-  TrendingUp, CheckSquare,
+  TrendingUp, CheckSquare, Briefcase,
 } from 'lucide-react';
 import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,7 @@ const adminNav = [
     section: 'People',
     items: [
       { label: 'Teams',          icon: FolderKanban,    path: '/teams' },
+      { label: 'Job Roles',      icon: Briefcase,       path: '/job-roles' },
       { label: 'People',         icon: Users2,          path: '/people' },
       { label: 'Users',          icon: Users,           path: '/users' },
     ],
@@ -56,6 +57,7 @@ const managerNav = [
     section: 'People',
     items: [
       { label: 'Teams',           icon: FolderKanban,    path: '/teams' },
+      { label: 'Job Roles',       icon: Briefcase,       path: '/job-roles' },
       { label: 'People',         icon: Users2,          path: '/people' },
     ],
   },
@@ -125,6 +127,7 @@ const pageTitles = {
   '/teams':                  'Teams',
   '/people':                 'People',
   '/users':                  'Users',
+  '/job-roles':              'Job Roles',
   '/skills-library':         'Skills Library',
   '/audit-log':              'Audit Log',
   '/settings':               'Settings',
