@@ -25,10 +25,9 @@ const S = {
   grey:  { bg: '#f1f5f9', fg: '#64748b' },
 };
 
-// Symbol shown inside each cell
+// Symbol shown inside each cell — always show the proficiency level number
 function getCellSymbol(assessment, skill) {
   if (!assessment) return '—';
-  if (skill.scale_type === 'binary') return assessment.proficiency_level >= 1 ? '✓' : '✗';
   return String(assessment.proficiency_level);
 }
 
@@ -63,11 +62,10 @@ function MatrixLegend() {
       {open && (
         <div className="px-5 pb-4 pt-1 border-t border-border space-y-2">
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
-            <span><span className="font-semibold text-foreground">✓ / ✗</span> = Pass / Fail (binary skills)</span>
-            <span><span className="font-semibold text-foreground">0–4</span> = Proficiency level (levelled skills)</span>
+            <span><span className="font-semibold text-foreground">0–4</span> = Proficiency level</span>
             <span><span className="font-semibold text-foreground">—</span> = Not yet assessed</span>
           </div>
-          <div className="text-xs text-muted-foreground">Levels: 0 Not trained · 1 Awareness · 2 Working knowledge · 3 Competent · 4 Expert</div>
+          <div className="text-xs text-muted-foreground">0 Not trained · 1 Awareness · 2 Working knowledge · 3 Competent · 4 Expert</div>
         </div>
       )}
     </div>
@@ -381,8 +379,7 @@ export default function SkillsMatrix() {
                             >
                               <div
                                 style={{
-                                  writingMode: 'vertical-lr',
-                                  transform: 'rotate(180deg)',
+                                  writingMode: 'vertical-rl',
                                   fontSize: 12,
                                   fontWeight: 600,
                                   color: 'hsl(var(--foreground))',
