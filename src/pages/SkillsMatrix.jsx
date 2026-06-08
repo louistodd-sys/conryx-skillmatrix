@@ -357,42 +357,65 @@ export default function SkillsMatrix() {
                     cat.skills.map((skill, si) => (
                       <th
                         key={skill.id}
-                        className="hover:bg-slate-100 transition-colors"
+                        className="hover:bg-slate-50 transition-colors"
                         style={{
                           position: 'sticky',
                           top: CAT_H,
                           zIndex: 10,
                           width: COL,
                           minWidth: COL,
-                          height: 110,
+                          height: 130,
                           background: '#f8fafc',
                           borderBottom: '2px solid hsl(var(--border))',
                           borderLeft: cellBorder(si, ci),
-                          padding: '8px 4px 10px',
+                          padding: 0,
                           verticalAlign: 'bottom',
+                          overflow: 'visible',
                         }}
                       >
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button
-                              className="group flex flex-col items-center w-full"
-                              style={{ height: 98 }}
+                              className="group"
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'flex-end',
+                                paddingBottom: 8,
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                              }}
                               onClick={() => setBulkSkill(skill)}
                             >
                               <div
                                 style={{
-                                  writingMode: 'vertical-rl',
-                                  fontSize: 12,
-                                  fontWeight: 600,
-                                  color: 'hsl(var(--foreground))',
                                   flex: 1,
-                                  overflow: 'hidden',
-                                  lineHeight: 1.35,
-                                  maxHeight: 78,
-                                  paddingBottom: 2,
+                                  display: 'flex',
+                                  alignItems: 'flex-end',
+                                  paddingLeft: Math.floor(COL / 2) - 2,
+                                  overflow: 'visible',
+                                  width: '100%',
                                 }}
                               >
-                                {skill.name}
+                                <span
+                                  style={{
+                                    display: 'block',
+                                    transformOrigin: 'left bottom',
+                                    transform: 'rotate(-45deg)',
+                                    whiteSpace: 'nowrap',
+                                    fontSize: 12,
+                                    fontWeight: 600,
+                                    color: 'hsl(var(--foreground))',
+                                    lineHeight: 1.3,
+                                    userSelect: 'none',
+                                  }}
+                                >
+                                  {skill.name}
+                                </span>
                               </div>
                               <Users
                                 style={{ width: 13, height: 13, color: 'hsl(var(--muted-foreground))', marginTop: 4, flexShrink: 0 }}
