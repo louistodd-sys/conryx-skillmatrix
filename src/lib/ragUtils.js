@@ -53,7 +53,7 @@ export function getRAGLabel(status, assessment, skill, teamRequirement) {
   switch (status) {
     case 'green': return 'Current';
     case 'amber': return 'Expiring Soon';
-    case 'grey': return 'Not Assessed';
+    case 'grey': return 'Not Required';
     case 'red': {
       if (!assessment) return 'Not Assessed';
       if (assessment.expiry_date) {

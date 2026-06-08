@@ -22,7 +22,7 @@ const S = {
   green: { bg: '#16a34a', fg: '#ffffff' },
   amber: { bg: '#d97706', fg: '#ffffff' },
   red:   { bg: '#dc2626', fg: '#ffffff' },
-  grey:  { bg: '#f1f5f9', fg: '#64748b' },
+  grey:  { bg: '#94a3b8', fg: '#ffffff' },
 };
 
 // Symbol shown inside each cell — ✓ for binary skills, numeric level for all others
@@ -49,9 +49,9 @@ function MatrixLegend() {
         onClick={() => setOpen(o => !o)}
       >
         <div className="flex items-center gap-4 flex-wrap">
-          {[['green','Current','#16a34a'],['amber','Expiring','#d97706'],['red','Gap','#dc2626'],['grey','Unassessed','#f1f5f9']].map(([s,label,bg]) => (
+          {[['green','Current','#16a34a'],['amber','Expiring','#d97706'],['red','Gap','#dc2626'],['grey','Not Required','#94a3b8']].map(([s,label,bg]) => (
             <div key={s} className="flex items-center gap-1.5">
-              <div className="w-5 h-5 rounded" style={{ background: bg, boxShadow: s === 'grey' ? 'inset 0 0 0 1.5px #cbd5e1' : 'none' }} />
+              <div className="w-5 h-5 rounded" style={{ background: bg }} />
               <span className="text-xs font-medium text-foreground">{label}</span>
             </div>
           ))}
@@ -501,7 +501,7 @@ export default function SkillsMatrix() {
                                       alignItems: 'center',
                                       justifyContent: 'center',
                                       lineHeight: 1,
-                                      boxShadow: status === 'grey' ? 'inset 0 0 0 1.5px #cbd5e1' : 'none',
+                                      boxShadow: 'none',
                                     }}
                                     onClick={() => setAssessingCell({ userId: member.user_id, userName: member.user_name, skill, assessment })}
                                     aria-label={`${member.user_name} — ${skill.name}: ${label}`}
@@ -650,7 +650,7 @@ export default function SkillsMatrix() {
                         style={{
                           background: S[st].bg,
                           color: S[st].fg,
-                          boxShadow: st === 'grey' ? 'inset 0 0 0 1.5px #cbd5e1' : 'none',
+                          boxShadow: 'none',
                         }}
                       >
                         {cnt}
@@ -686,7 +686,7 @@ export default function SkillsMatrix() {
                               style={{
                                 background: S[status].bg,
                                 color: S[status].fg,
-                                boxShadow: status === 'grey' ? 'inset 0 0 0 1.5px #cbd5e1' : 'none',
+                                boxShadow: 'none',
                               }}
                             >
                               {sym}
