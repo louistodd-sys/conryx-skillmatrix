@@ -132,6 +132,11 @@ function SignInForm({ selectedProduct }) {
       setError(err.message)
     } else if (data.session) {
       // auto-confirmed — onAuthStateChange routes to onboarding
+    } else if (!data.user?.identities?.length) {
+      // Supabase returns a fake 200 for existing emails (no OTP sent).
+      // Switch to sign-in and tell the user.
+      setError('An account with this email already exists. Please sign in.')
+      setMode('signin')
     } else {
       setCode('')
       setMode('verify')
@@ -165,7 +170,7 @@ function SignInForm({ selectedProduct }) {
             <Lock className="w-5 h-5 text-blue-600" />
           </div>
           <h3 className="font-bold text-base mb-1">Check your email</h3>
-          <p className="text-sm text-slate-500">We sent an 8-digit code to <strong>{email}</strong>. Enter it below to confirm your account.</p>
+          <p className="text-sm text-slate-500">We sent a verification code to <strong>{email}</strong>. Enter it below to confirm your account.</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Verification code</label>
