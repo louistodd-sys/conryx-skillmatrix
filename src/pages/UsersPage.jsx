@@ -14,6 +14,8 @@ import InviteUserModal from '@/components/InviteUserModal';
 import AddEmployeeModal from '@/components/AddEmployeeModal';
 import EditEmployeeModal from '@/components/EditEmployeeModal';
 import { format, parseISO } from 'date-fns';
+import useTierCheck from '@/hooks/useTierCheck';
+import UpgradePromptModal from '@/components/UpgradePromptModal';
 
 const STATUS_COLORS = {
   active:   'bg-green-100 text-green-700',
@@ -74,6 +76,12 @@ export default function UsersPage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [showInvite, setShowInvite]     = useState(false);
   const [showAddEmployee, setShowAddEmployee] = useState(false);
+  const { checking: tierChecking, upgradePrompt, checkLimit, clearPrompt } = useTierCheck();
+
+  async function handleAddEmployeeClick() {
+    const allowed = await checkLimit('employee');
+    if (allowed) setShowAddEmployee(true);
+  }
   const [editingEmployee, setEditingEmployee] = useState(null);   // { userId, name, email }
   const [deletingEmployee, setDeletingEmployee] = useState(null); // { userId, name }
   const [tab, setTab]                   = useState('users');
@@ -225,7 +233,7 @@ export default function UsersPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowAddEmployee(true)}>
+          <Button variant="outline" onClick={handleAddEmployeeClick} disabled={tierChecking}>
             <UserCog className="w-4 h-4 mr-1.5" /> Add Employee
           </Button>
           <Button onClick={() => setShowInvite(true)}>
@@ -374,7 +382,7 @@ export default function UsersPage() {
             title="No managed employees yet"
             description="Add employees who are tracked in the skills matrix but don't need app logins."
             actionLabel="Add Employee"
-            onAction={() => setShowAddEmployee(true)}
+            onAction={handleAddEmployeeClick}
           />
         ) : (
           <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -540,6 +548,7 @@ export default function UsersPage() {
       {showInvite && (
         <InviteUserModal orgId={org.id} teams={teams} onClose={() => setShowInvite(false)} onSaved={loadData} />
       )}
+      {upgradePrompt && <UpgradePromptModal prompt={upgradePrompt} onClose={clearPrompt} />}
       {showAddEmployee && (
         <AddEmployeeModal
           orgId={org.id} teams={teams}
