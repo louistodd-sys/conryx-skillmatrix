@@ -9,22 +9,22 @@ const TIER_LIMITS: Record<string, Record<string, number | null>> = {
 
 const UPGRADE_PROMPTS: Record<string, Record<string, { target: string; message: string; unlocks: string[] }>> = {
   employee_limit: {
-    free:      { target: 'Essential',    message: "You've reached the 10-member limit on Free. Upgrade to Essential to track up to 50 members.",      unlocks: ['Up to 50 members', '30 skills', 'Gap analysis reports', 'CSV export', 'Employee portal', 'Unlimited managers'] },
-    essential: { target: 'Professional', message: "You've reached the 50-member limit. Upgrade to Professional to track up to 500 members.",           unlocks: ['Up to 500 members', 'Unlimited skills', 'PDF reports', 'Advanced analytics', 'Site-level views', 'Unlimited admin seats'] },
+    free:      { target: 'Essential',    message: "You've reached the limit of 10 tracked employees on Free. Upgrade to Essential to track up to 50 employees.",      unlocks: ['Track up to 50 employees', '30 skills', 'Gap analysis reports', 'CSV export', 'Employee portal', 'Unlimited managers'] },
+    essential: { target: 'Professional', message: "You've reached the limit of 50 tracked employees. Upgrade to Professional to track up to 500 employees.",           unlocks: ['Track up to 500 employees', 'Unlimited skills', 'PDF reports', 'Advanced analytics', 'Site-level views', 'Unlimited admin logins'] },
   },
   skill_limit: {
-    free:      { target: 'Essential',    message: "You've reached the 10-skill limit on Free. Upgrade to Essential to track up to 30 skills.",          unlocks: ['Up to 30 skills', 'Up to 50 members', 'Gap analysis reports', 'CSV export', 'Employee portal'] },
-    essential: { target: 'Professional', message: "You've reached the 30-skill limit. Upgrade to Professional for unlimited skills.",                   unlocks: ['Unlimited skills', 'Up to 500 members', 'PDF reports', 'Advanced analytics'] },
+    free:      { target: 'Essential',    message: "You've reached the 10-skill limit on Free. Upgrade to Essential to track up to 30 skills.",          unlocks: ['Up to 30 skills', 'Track up to 50 employees', 'Gap analysis reports', 'CSV export', 'Employee portal'] },
+    essential: { target: 'Professional', message: "You've reached the 30-skill limit. Upgrade to Professional for unlimited skills.",                   unlocks: ['Unlimited skills', 'Track up to 500 employees', 'PDF reports', 'Advanced analytics'] },
   },
   category_limit: {
-    free:      { target: 'Essential',    message: "You've used all 3 categories. Upgrade to Essential for unlimited categories.",                       unlocks: ['Unlimited categories', 'Up to 50 members', 'Gap analysis reports', 'CSV export'] },
+    free:      { target: 'Essential',    message: "You've used all 3 categories. Upgrade to Essential for unlimited categories.",                       unlocks: ['Unlimited categories', 'Track up to 50 employees', 'Gap analysis reports', 'CSV export'] },
   },
   manager_seat_limit: {
-    free:      { target: 'Essential',    message: "Manager seats are not available on Free. Upgrade to Essential for unlimited managers.",              unlocks: ['Unlimited manager seats', 'Gap analysis reports', 'CSV export', 'Employee portal'] },
+    free:      { target: 'Essential',    message: "Manager logins are not available on Free. Upgrade to Essential for unlimited manager logins.",       unlocks: ['Unlimited manager logins', 'Gap analysis reports', 'CSV export', 'Employee portal'] },
   },
   admin_seat_limit: {
-    free:      { target: 'Essential',    message: "Free includes 1 admin seat. Upgrade to Essential for 2 admin seats.",                               unlocks: ['2 admin seats', 'Unlimited managers', 'Up to 50 members', 'Gap analysis reports'] },
-    essential: { target: 'Professional', message: "Essential includes 2 admin seats. Upgrade to Professional for unlimited admin seats.",               unlocks: ['Unlimited admin seats', 'Up to 500 members', 'PDF reports', 'Advanced analytics'] },
+    free:      { target: 'Essential',    message: "Free includes 1 admin login. Upgrade to Essential for 2 admin logins.",                             unlocks: ['2 admin logins', 'Unlimited manager logins', 'Track up to 50 employees', 'Gap analysis reports'] },
+    essential: { target: 'Professional', message: "Essential includes 2 admin logins. Upgrade to Professional for unlimited admin logins.",             unlocks: ['Unlimited admin logins', 'Track up to 500 employees', 'PDF reports', 'Advanced analytics'] },
   },
   csv_export: {
     free:      { target: 'Essential',    message: "CSV export is available on Essential and above.",                                                   unlocks: ['CSV export', 'Gap analysis reports', 'Employee portal', 'Up to 50 members'] },
@@ -101,11 +101,13 @@ Deno.serve(async (req) => {
     let scenario: string | null = null
 
     if (resource === 'employee') {
+      // Count every distinct person tracked in the skills matrix (any team_member
+      // row), regardless of whether they have an app login or are managed-only.
+      // A person on multiple teams counts once.
       const { data: members } = await admin
         .from('team_members')
         .select('user_id')
         .eq('organisation_id', orgId)
-        .eq('is_managed_member', true)
       const unique = new Set((members || []).map((m: any) => m.user_id))
       currentCount = unique.size
       scenario = 'employee_limit'

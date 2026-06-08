@@ -3,12 +3,15 @@ import { X, Search } from 'lucide-react';
 import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import useTierCheck from '@/hooks/useTierCheck';
+import UpgradePromptModal from '@/components/UpgradePromptModal';
 
 export default function AddMemberModal({ teamId, orgId, existingMemberIds, onClose, onSaved }) {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [adding, setAdding] = useState(null);
   const [error, setError] = useState('');
+  const { checking, upgradePrompt, checkLimit, clearPrompt } = useTierCheck();
 
   useEffect(() => {
     apiClient.entities.User.filter({ organisation_id: orgId }).then(setUsers).catch(() => {});
@@ -23,6 +26,8 @@ export default function AddMemberModal({ teamId, orgId, existingMemberIds, onClo
   const addUser = async (user) => {
     setAdding(user.id);
     setError('');
+    const allowed = await checkLimit('employee');
+    if (!allowed) { setAdding(null); return; }
     try {
       await apiClient.entities.TeamMember.create({
         organisation_id: orgId,
@@ -42,6 +47,8 @@ export default function AddMemberModal({ teamId, orgId, existingMemberIds, onClo
   };
 
   return (
+    <>
+    {upgradePrompt && <UpgradePromptModal prompt={upgradePrompt} onClose={clearPrompt} />}
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="bg-card rounded-xl border border-border shadow-xl w-full max-w-md mx-4 max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
@@ -70,7 +77,7 @@ export default function AddMemberModal({ teamId, orgId, existingMemberIds, onClo
                   <p className="text-sm font-medium truncate">{u.full_name || u.email}</p>
                   <p className="text-xs text-muted-foreground">{u.email}</p>
                 </div>
-                <Button size="sm" onClick={() => addUser(u)} disabled={adding === u.id}>
+                <Button size="sm" onClick={() => addUser(u)} disabled={adding === u.id || checking}>
                   {adding === u.id ? 'Adding...' : 'Add'}
                 </Button>
               </div>
@@ -79,5 +86,6 @@ export default function AddMemberModal({ teamId, orgId, existingMemberIds, onClo
         </div>
       </div>
     </div>
+    </>
   );
 }
