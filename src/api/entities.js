@@ -97,4 +97,6 @@ export const entities = {
   BRCDocumentVersion: makeEntity('brc_document_versions'),
   SkillTemplate: makeEntity('skill_templates'),
   SkillTemplateSkill: makeEntity('skill_template_skills'),
+  TrainingModule: makeEntity('training_modules'),
+  TaskCompletion: makeEntity('task_completions'),
 }

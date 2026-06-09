@@ -6,7 +6,7 @@ import {
   BookOpen, ScrollText, Settings, Bell, Menu, X, LogOut,
   ShieldCheck, FileText, ClipboardList, AlertTriangle, Truck,
   Wrench, MessageSquare, FlaskConical, Bug, GraduationCap,
-  TrendingUp, CheckSquare, Briefcase,
+  TrendingUp, CheckSquare, Briefcase, ListChecks,
 } from 'lucide-react';
 import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,12 @@ const adminNav = [
     ],
   },
   {
+    section: 'Training',
+    items: [
+      { label: 'Training',       icon: ListChecks,      path: '/training-modules' },
+    ],
+  },
+  {
     section: 'Library',
     items: [
       { label: 'Skills Library', icon: BookOpen,        path: '/skills-library' },
@@ -59,6 +65,12 @@ const managerNav = [
       { label: 'Teams',           icon: FolderKanban,    path: '/teams' },
       { label: 'Job Roles',       icon: Briefcase,       path: '/job-roles' },
       { label: 'People',         icon: Users2,          path: '/people' },
+    ],
+  },
+  {
+    section: 'Training',
+    items: [
+      { label: 'Training',       icon: ListChecks,      path: '/training-modules' },
     ],
   },
 ];
@@ -132,6 +144,7 @@ const pageTitles = {
   '/audit-log':              'Audit Log',
   '/settings':               'Settings',
   '/my-profile':             'My Skills',
+  '/training-modules':       'Training Modules',
   '/brc':                    'BRC Dashboard',
   '/brc/clauses':            'Clause Mapping',
   '/brc/documents':          'Document Control',
