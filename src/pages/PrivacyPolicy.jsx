@@ -3,13 +3,13 @@ export default function PrivacyPolicy() {
     <div className="max-w-3xl mx-auto px-4 py-12 space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Privacy Policy</h1>
-        <p className="text-sm text-muted-foreground mt-1">Last updated: May 2026 · Conryx Ltd</p>
+        <p className="text-sm text-muted-foreground mt-1">Last updated: May 2026 · Skillsmatrixapp Ltd</p>
       </div>
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">1. Who we are</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Skills Matrix App is operated by <strong>Conryx Ltd</strong>, a company registered in England and Wales
+          Skills Matrix App is operated by <strong>Skillsmatrixapp Ltd</strong>, a company registered in England and Wales
           (Company Number: [PLACEHOLDER]). Registered office: [PLACEHOLDER ADDRESS].
           We are registered with the Information Commissioner's Office (ICO Registration: [PLACEHOLDER]).
         </p>

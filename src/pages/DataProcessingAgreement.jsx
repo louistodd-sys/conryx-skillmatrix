@@ -3,13 +3,13 @@ export default function DataProcessingAgreement() {
     <div className="max-w-3xl mx-auto px-4 py-12 space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Data Processing Agreement (DPA)</h1>
-        <p className="text-sm text-muted-foreground mt-1">Last updated: May 2026 · Conryx Ltd</p>
+        <p className="text-sm text-muted-foreground mt-1">Last updated: May 2026 · Skillsmatrixapp Ltd</p>
       </div>
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">1. Parties</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          This Data Processing Agreement ("DPA") is between <strong>Conryx Ltd</strong> ("Processor") and
+          This Data Processing Agreement ("DPA") is between <strong>Skillsmatrixapp Ltd</strong> ("Processor") and
           the organisation that has subscribed to Skills Matrix App ("Controller").
           This DPA forms part of the Terms of Service.
         </p>
@@ -18,7 +18,7 @@ export default function DataProcessingAgreement() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">2. Subject matter of processing</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Conryx Ltd processes personal data on behalf of the Controller solely to provide the Skills Matrix App service.
+          Skillsmatrixapp Ltd processes personal data on behalf of the Controller solely to provide the Skills Matrix App service.
           Personal data processed includes: employee names, email addresses, job titles, skill assessment records,
           and usage logs.
         </p>
@@ -39,7 +39,7 @@ export default function DataProcessingAgreement() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">4. Sub-processors</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Conryx Ltd uses the following sub-processors: Base44 (application hosting and infrastructure),
+          Skillsmatrixapp Ltd uses the following sub-processors: Base44 (application hosting and infrastructure),
           Stripe (payment processing). A full list is available on request.
         </p>
       </section>

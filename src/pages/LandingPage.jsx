@@ -264,7 +264,7 @@ export default function LandingPage() {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Layers className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-base">Conryx</span>
+            <span className="font-bold text-base">Skills Matrix App</span>
           </div>
           <div className="flex items-center gap-4">
             <a href="#products" className="hidden sm:block text-sm text-slate-600 hover:text-slate-900">Products</a>
@@ -589,7 +589,7 @@ export default function LandingPage() {
                   <Layers className="w-4 h-4 text-white" />
                 </div>
                 <h3 className="text-base font-bold">
-                  {selectedProduct === 'brc' ? 'BRC Compliance App' : selectedProduct === 'both' ? 'Conryx — Both Products' : 'Sign in to Conryx'}
+                  {selectedProduct === 'brc' ? 'BRC Compliance App' : selectedProduct === 'both' ? 'Skills Matrix App — Both Products' : 'Sign in to Skills Matrix App'}
                 </h3>
               </div>
               <SignInForm selectedProduct={selectedProduct} />
@@ -607,7 +607,7 @@ export default function LandingPage() {
                 <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center">
                   <Layers className="w-3.5 h-3.5 text-white" />
                 </div>
-                <span className="text-white font-bold text-sm">Conryx</span>
+                <span className="text-white font-bold text-sm">Skills Matrix App</span>
               </div>
               <p className="text-sm max-w-xs leading-relaxed">Skills management and BRC compliance for food and packaging manufacturers.</p>
             </div>
@@ -627,7 +627,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-slate-800 mt-10 pt-6 text-xs text-center">
-            © {new Date().getFullYear()} Conryx. All rights reserved.
+            © {new Date().getFullYear()} Skillsmatrixapp. All rights reserved.
           </div>
         </div>
       </footer>

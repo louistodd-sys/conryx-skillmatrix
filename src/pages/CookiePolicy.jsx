@@ -3,7 +3,7 @@ export default function CookiePolicy() {
     <div className="max-w-3xl mx-auto px-4 py-12 space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Cookie Policy</h1>
-        <p className="text-sm text-muted-foreground mt-1">Last updated: May 2026 · Conryx Ltd</p>
+        <p className="text-sm text-muted-foreground mt-1">Last updated: May 2026 · Skillsmatrixapp Ltd</p>
       </div>
 
       <section className="space-y-3">
