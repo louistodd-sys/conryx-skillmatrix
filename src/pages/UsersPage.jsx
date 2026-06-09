@@ -323,6 +323,7 @@ export default function UsersPage() {
                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">Role</th>
                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 hidden sm:table-cell">Status</th>
                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 hidden lg:table-cell">Teams</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 hidden xl:table-cell">Site</th>
                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 hidden xl:table-cell">Last Login</th>
                     <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 hidden xl:table-cell">Joined</th>
                   </tr>
@@ -357,6 +358,9 @@ export default function UsersPage() {
                               <Badge key={i} variant="outline" className="text-xs">{t}</Badge>
                             ))}
                           </div>
+                        </td>
+                        <td className="px-4 py-3 text-xs text-muted-foreground hidden xl:table-cell">
+                          {u.site || <span className="text-muted-foreground/40">—</span>}
                         </td>
                         <td className="px-4 py-3 text-xs text-muted-foreground hidden xl:table-cell">
                           {formatDate(u.last_login_at)}

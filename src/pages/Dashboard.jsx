@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Users, BookOpen, ClipboardCheck, AlertTriangle, TrendingUp, Clock,
   CheckCircle2, Circle, X, ArrowRight, ChevronRight, Link2, ShieldCheck,
 } from 'lucide-react';
+import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { hasBrcModule, hasMultipleModules } from '@/lib/brcModuleGuard';
@@ -271,6 +272,30 @@ export default function Dashboard() {
       .sort((a, b) => (b.assessed_date || '').localeCompare(a.assessed_date || ''))
       .slice(0, 8);
 
+    // Site breakdown (Professional tier) — group users by site
+    const siteMap = {};
+    for (const u of allUsers) {
+      const site = u.site || null;
+      if (!site) continue;
+      if (!siteMap[site]) siteMap[site] = { count: 0, userIds: [] };
+      siteMap[site].count++;
+      siteMap[site].userIds.push(u.id);
+    }
+    const siteBreakdown = Object.entries(siteMap).map(([name, { count, userIds }]) => {
+      const userSet = new Set(userIds);
+      let siteReq = 0, siteGreen = 0;
+      teamReqSkills.filter(r => r.is_required).forEach(req => {
+        const members = teamMembers.filter(m => userSet.has(m.user_id) && m.team_id === req.team_id);
+        members.forEach(member => {
+          siteReq++;
+          const assessment = currentAssessments[`${member.user_id}-${req.skill_id}`];
+          const skill = skills.find(s => s.id === req.skill_id);
+          if (getRAGStatus(assessment, skill, req) === 'green') siteGreen++;
+        });
+      });
+      return { name, count, compliance: siteReq > 0 ? Math.round((siteGreen / siteReq) * 100) : 0 };
+    }).sort((a, b) => a.name.localeCompare(b.name));
+
     setData({
       userCount: allUsers.length,
       skillCount: skills.length,
@@ -283,6 +308,8 @@ export default function Dashboard() {
       expiries: allUpcomingExpiries,
       recentAssessments,
       hasRequiredSkills,
+      assessmentsRaw: assessments,
+      siteBreakdown,
     });
     setLoading(false);
   }
@@ -323,6 +350,24 @@ export default function Dashboard() {
   const expiryBuckets = bucketExpiries(data.expiries);
   const hasExpiries = data.expiries.length > 0;
   const isAdmin = user?.role === 'admin';
+
+  // Sparkline: last 7 weeks of assessment count as a trend proxy
+  const sparklineData = useMemo(() => {
+    if (!data?.assessmentsRaw) return [];
+    const now = new Date();
+    return Array.from({ length: 7 }, (_, i) => {
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - (6 - i) * 7);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 7);
+      const count = data.assessmentsRaw.filter(a => {
+        if (!a.assessed_date) return false;
+        const d = new Date(a.assessed_date);
+        return d >= weekStart && d < weekEnd;
+      }).length;
+      return { v: count };
+    });
+  }, [data?.assessmentsRaw]);
 
   return (
     <div className="space-y-6">
@@ -375,12 +420,23 @@ export default function Dashboard() {
         <MetricCard icon={BookOpen}       label="Skills"         value={data.skillCount} />
         <MetricCard icon={ClipboardCheck} label="Assessments"    value={data.assessmentCount} />
         {isAdmin && (
-          <MetricCard
-            icon={TrendingUp}
-            label="Compliance"
-            value={`${data.compliancePercent}%`}
-            subtext="required skills current"
-          />
+          <div className="relative">
+            <MetricCard
+              icon={TrendingUp}
+              label="Compliance"
+              value={`${data.compliancePercent}%`}
+              subtext="required skills current"
+            />
+            {sparklineData.length > 1 && (
+              <div className="absolute bottom-3 right-3 w-16 h-8 opacity-50">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={sparklineData}>
+                    <Line type="monotone" dataKey="v" stroke="#6366f1" strokeWidth={1.5} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
         )}
         <MetricCard
           icon={AlertTriangle}
@@ -476,6 +532,31 @@ export default function Dashboard() {
           <div className="divide-y divide-border">
             {data.recentAssessments.map((a, i) => (
               <ActivityItem key={i} a={a} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Site Breakdown (Professional only) ─────────────────────────── */}
+      {isAdmin && org?.subscription_tier === 'professional' && data.siteBreakdown?.length > 0 && (
+        <div className="bg-card border border-border rounded-xl shadow-card">
+          <div className="px-5 py-4 border-b border-border">
+            <h2 className="font-jakarta font-700 text-base text-foreground">Site Breakdown</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Compliance by site / location</p>
+          </div>
+          <div className="divide-y divide-border">
+            {data.siteBreakdown.map(site => (
+              <div key={site.name} className="flex items-center gap-4 px-5 py-3.5">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">{site.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{site.count} user{site.count !== 1 ? 's' : ''}</p>
+                </div>
+                <span className={`text-sm font-bold tabular-nums ${
+                  site.compliance >= 80 ? 'text-rag-green' :
+                  site.compliance >= 50 ? 'text-rag-amber' :
+                  'text-rag-red'
+                }`}>{site.compliance}%</span>
+              </div>
             ))}
           </div>
         </div>

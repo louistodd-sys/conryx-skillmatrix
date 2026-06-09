@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Trash2, UserCog, Pencil, Loader2, Clock, AlertTriangle } from 'lucide-react';
+import PrintReportWrapper from '@/components/PrintReportWrapper';
+import { isFeatureAvailable } from '@/lib/tierConfig';
 import Breadcrumb from '@/components/Breadcrumb';
 import { differenceInDays, parseISO } from 'date-fns';
 import { apiClient } from '@/api/apiClient';
@@ -244,7 +246,10 @@ export default function UserProfile() {
     }))
     .filter(g => g.skills.length > 0);
 
+  const tier = org?.subscription_tier || 'free';
+
   return (
+    <PrintReportWrapper orgName={org?.name} reportTitle={`Skills Report — ${profileUser.full_name}`} tier={tier}>
     <div className="space-y-6">
       <Breadcrumb items={[{ label: 'Users', href: '/users' }, { label: profileUser.full_name }]} />
 
@@ -518,5 +523,6 @@ export default function UserProfile() {
         />
       )}
     </div>
+    </PrintReportWrapper>
   );
 }
