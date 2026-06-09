@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { BarChart3, Filter, ChevronRight } from 'lucide-react';
+import PrintReportWrapper from '@/components/PrintReportWrapper';
 import SkillDrillDown from '@/components/SkillDrillDown';
 import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
@@ -161,7 +162,10 @@ export default function GapAnalysis() {
     })
   );
 
+  const tier = org?.subscription_tier || 'free';
+
   return (
+    <PrintReportWrapper orgName={org?.name} reportTitle="Gap Analysis Report" tier={tier}>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -170,7 +174,7 @@ export default function GapAnalysis() {
           <p className="text-sm text-muted-foreground mt-0.5">Identify skills gaps and training needs</p>
         </div>
         <select
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+          className="h-9 rounded-md border border-input bg-background px-3 text-sm no-print"
           value={selectedTeam}
           onChange={e => setSelectedTeam(e.target.value)}
         >
@@ -349,5 +353,6 @@ export default function GapAnalysis() {
         </div>
       )}
     </div>
+    </PrintReportWrapper>
   );
 }

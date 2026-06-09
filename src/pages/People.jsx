@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   Users2, Search, ChevronDown, ChevronUp, ExternalLink,
   AlertTriangle, Clock, CheckCircle2, MinusCircle, Shield,
-  TrendingDown,
+  TrendingDown, Zap,
 } from 'lucide-react';
 import { differenceInDays, parseISO, isValid, format } from 'date-fns';
 import { apiClient } from '@/api/apiClient';
@@ -12,8 +12,10 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/EmptyState';
+import AssessmentModal from '@/components/AssessmentModal';
 import { getRAGStatus, getProficiencyLabel } from '@/lib/ragUtils';
 import { getLatestAssessments } from '@/utils/assessmentUtils';
+import { isFeatureAvailable } from '@/lib/tierConfig';
 
 // ─── RAG config ─────────────────────────────────────────────────────────────
 const RAG = {
@@ -143,7 +145,7 @@ function SummaryChips({ ragCounts }) {
 }
 
 // ─── Person card ──────────────────────────────────────────────────────────────
-function PersonCard({ person, personSkills, categories, skills, teamNames }) {
+function PersonCard({ person, personSkills, categories, skills, teamNames, onQuickAssess }) {
   const [expanded, setExpanded] = useState(false);
   const pct = compliancePct(personSkills);
   const ragCounts = { green: 0, amber: 0, red: 0, grey: 0 };
@@ -205,6 +207,18 @@ function PersonCard({ person, personSkills, categories, skills, teamNames }) {
 
         {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">
+          {onQuickAssess && (ragCounts.red > 0 || ragCounts.grey > 0) && (
+            <button
+              className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors text-muted-foreground hover:text-primary"
+              onClick={() => {
+                const gapSkill = personSkills.find(ps => ps.rag === 'red' || ps.rag === 'grey');
+                if (gapSkill) onQuickAssess({ person, skill: gapSkill.skill, existingAssessment: gapSkill.assessment });
+              }}
+              title="Quick assess a skill gap"
+            >
+              <Zap className="w-3.5 h-3.5" />
+            </button>
+          )}
           <Link
             to={`/users/${person.userId}`}
             className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-primary"
@@ -285,7 +299,9 @@ export default function People() {
 
   const [search, setSearch]               = useState('');
   const [filterTeam, setFilterTeam]       = useState('all');
+  const [filterSite, setFilterSite]       = useState('all');
   const [showGapsOnly, setShowGapsOnly]   = useState(false);
+  const [quickAssess, setQuickAssess]     = useState(null); // { person, skill, existingAssessment }
 
   useEffect(() => { if (org) loadData(); }, [org?.id]);
 
@@ -386,13 +402,17 @@ export default function People() {
     return sortedPeople.filter(p => {
       if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !(p.email || '').toLowerCase().includes(search.toLowerCase())) return false;
       if (filterTeam !== 'all' && !p.teamIds.includes(filterTeam)) return false;
+      if (filterSite !== 'all') {
+        const appUser = appUsers.find(u => u.id === p.userId);
+        if ((appUser?.site || '') !== filterSite) return false;
+      }
       if (showGapsOnly) {
         const ps = personSkillsMap[p.userId] || [];
         if (!ps.some(s => s.rag === 'red' || s.rag === 'amber')) return false;
       }
       return true;
     });
-  }, [sortedPeople, search, filterTeam, showGapsOnly, personSkillsMap]);
+  }, [sortedPeople, search, filterTeam, filterSite, showGapsOnly, personSkillsMap, appUsers]);
 
   // Stats
   const stats = useMemo(() => {
@@ -406,6 +426,9 @@ export default function People() {
 
   const activeTeamIds = new Set(teamMembers.map(m => m.team_id));
   const visibleTeams = teams.filter(t => activeTeamIds.has(t.id));
+  const tier = org?.subscription_tier || 'free';
+  const hasSiteViews = isFeatureAvailable(tier, 'site_level_views');
+  const allSites = [...new Set(appUsers.map(u => u.site).filter(Boolean))].sort();
 
   if (loading) return (
     <div className="space-y-3">
@@ -472,6 +495,16 @@ export default function People() {
           <option value="all">All Teams</option>
           {visibleTeams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
+        {hasSiteViews && allSites.length > 0 && (
+          <select
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+            value={filterSite}
+            onChange={e => setFilterSite(e.target.value)}
+          >
+            <option value="all">All Sites</option>
+            {allSites.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        )}
         <Button
           variant={showGapsOnly ? 'default' : 'outline'}
           size="sm"
@@ -512,9 +545,22 @@ export default function People() {
               categories={categories}
               skills={skills}
               teamNames={person.teamIds.map(id => teamNameMap[id]).filter(Boolean)}
+              onQuickAssess={setQuickAssess}
             />
           ))}
         </div>
+      )}
+
+      {quickAssess && (
+        <AssessmentModal
+          onClose={() => { setQuickAssess(null); loadData(); }}
+          onSaved={() => { setQuickAssess(null); loadData(); }}
+          skill={quickAssess.skill}
+          userId={quickAssess.person.userId}
+          userName={quickAssess.person.name}
+          existingAssessment={quickAssess.existingAssessment}
+          orgId={org?.id}
+        />
       )}
     </div>
   );

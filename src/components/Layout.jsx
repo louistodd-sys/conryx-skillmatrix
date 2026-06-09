@@ -44,6 +44,7 @@ const adminNav = [
     section: 'Library',
     items: [
       { label: 'Skills Library', icon: BookOpen,        path: '/skills-library' },
+      { label: 'Analytics',      icon: TrendingUp,      path: '/analytics' },
       { label: 'Audit Log',      icon: ScrollText,      path: '/audit-log' },
       { label: 'Settings',       icon: Settings,        path: '/settings' },
     ],
@@ -71,6 +72,12 @@ const managerNav = [
     section: 'Training',
     items: [
       { label: 'Training',       icon: ListChecks,      path: '/training-modules' },
+    ],
+  },
+  {
+    section: 'Insights',
+    items: [
+      { label: 'Analytics',      icon: TrendingUp,      path: '/analytics' },
     ],
   },
 ];
