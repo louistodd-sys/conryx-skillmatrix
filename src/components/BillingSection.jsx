@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { CreditCard, Download, Loader2, Check, Settings, ShieldCheck, ArrowRight } from 'lucide-react';
 import { apiClient } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
@@ -35,17 +36,27 @@ export default function BillingSection({ org }) {
 
   const handleManageSubscription = async () => {
     setPortalLoading(true);
-    const res = await apiClient.functions.invoke('stripePortal', {});
-    if (res.data?.url) window.location.href = res.data.url;
-    setPortalLoading(false);
+    try {
+      const res = await apiClient.functions.invoke('stripePortal', {});
+      if (res.data?.url) window.location.href = res.data.url;
+    } catch (err) {
+      toast.error('Could not open billing portal. Please try again.');
+    } finally {
+      setPortalLoading(false);
+    }
   };
 
   const handleUpgrade = async (tier) => {
     if (tier === 'free') return;
     setLoadingTier(tier);
-    const res = await apiClient.functions.invoke('stripeCheckout', { tier });
-    if (res.data?.url) window.location.href = res.data.url;
-    setLoadingTier(null);
+    try {
+      const res = await apiClient.functions.invoke('stripeCheckout', { tier });
+      if (res.data?.url) window.location.href = res.data.url;
+    } catch (err) {
+      toast.error('Could not start checkout. Please try again.');
+    } finally {
+      setLoadingTier(null);
+    }
   };
 
   const formatAmount = (amount, currency) => {
@@ -62,9 +73,14 @@ export default function BillingSection({ org }) {
   const [brcCheckoutLoading, setBrcCheckoutLoading] = useState(false);
   const handleBrcSubscribe = async () => {
     setBrcCheckoutLoading(true);
-    const res = await apiClient.functions.invoke('stripeBrcCheckout', {});
-    if (res.data?.url) window.location.href = res.data.url;
-    setBrcCheckoutLoading(false);
+    try {
+      const res = await apiClient.functions.invoke('stripeBrcCheckout', {});
+      if (res.data?.url) window.location.href = res.data.url;
+    } catch (err) {
+      toast.error('Could not start BRC checkout. Please try again.');
+    } finally {
+      setBrcCheckoutLoading(false);
+    }
   };
 
   return (
