@@ -6,9 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getProficiencyLabel } from '@/lib/ragUtils';
+import EvidenceSection from '@/components/EvidenceSection';
 
 export default function AssessmentModal({ userId, userName, skill, existingAssessment, orgId, onClose, onSaved }) {
-  const { user } = useOrganisation();
+  const { user, org } = useOrganisation();
+  const tier = org?.subscription_tier || 'free';
+  const isEssentialOrProfessional = tier === 'essential' || tier === 'professional';
   const [notRequired, setNotRequired] = useState(false);
   const [form, setForm] = useState({
     proficiency_level: existingAssessment?.proficiency_level != null ? Number(existingAssessment.proficiency_level) : (skill.scale_type === 'binary' ? 1 : 3),
@@ -275,6 +278,24 @@ export default function AssessmentModal({ userId, userName, skill, existingAsses
             </Button>
           </div>
         </form>
+
+        {/* Evidence section — only for saved assessments */}
+        {existingAssessment?.id ? (
+          <div className="px-5 pb-5 border-t border-border pt-4">
+            <EvidenceSection
+              entityType="skill_assessment"
+              entityId={existingAssessment.id}
+              orgId={orgId}
+              canUpload={isEssentialOrProfessional}
+            />
+          </div>
+        ) : (
+          <div className="px-5 pb-4 border-t border-border pt-3">
+            <p className="text-xs text-muted-foreground italic">
+              Save the assessment first to attach evidence.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

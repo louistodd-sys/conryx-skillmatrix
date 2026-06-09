@@ -51,6 +51,7 @@ export const TIER_FEATURES = {
     pdf_reports:              false,
     site_level_views:         false,
     advanced_analytics:       false,
+    training_materials:       false,
   },
   essential: {
     core_matrix:              true,
@@ -61,6 +62,7 @@ export const TIER_FEATURES = {
     pdf_reports:              false,
     site_level_views:         false,
     advanced_analytics:       false,
+    training_materials:       true,
   },
   professional: {
     core_matrix:              true,
@@ -71,6 +73,7 @@ export const TIER_FEATURES = {
     pdf_reports:              true,
     site_level_views:         true,
     advanced_analytics:       true,
+    training_materials:       true,
   },
 };
 

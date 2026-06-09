@@ -174,6 +174,21 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ allowed: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
+    } else if (resource === 'training_materials') {
+      const allowed = tier === 'essential' || tier === 'professional'
+      if (!allowed) {
+        return new Response(JSON.stringify({
+          allowed: false,
+          upgrade_prompt: {
+            target: 'Essential',
+            message: 'Training materials require Essential or Professional plan.',
+            unlocks: ['Training modules with task checklists', 'Auto-update skills matrix on completion', 'Evidence file uploads', 'Gap analysis reports', 'CSV export'],
+          },
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+      return new Response(JSON.stringify({ allowed: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     } else if (resource === 'evidence_storage_mb') {
       const quotaBytes = STORAGE_QUOTA_BYTES[tier] ?? STORAGE_QUOTA_BYTES.free
       const { data: existingFiles } = await admin
