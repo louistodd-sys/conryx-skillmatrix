@@ -3,13 +3,13 @@ export default function TermsOfService() {
     <div className="max-w-3xl mx-auto px-4 py-12 space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Terms of Service</h1>
-        <p className="text-sm text-muted-foreground mt-1">Last updated: May 2026 · Conryx Ltd</p>
+        <p className="text-sm text-muted-foreground mt-1">Last updated: May 2026 · Skillsmatrixapp Ltd</p>
       </div>
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">1. The service</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Skills Matrix App is a workforce skills management platform operated by <strong>Conryx Ltd</strong>
+          Skills Matrix App is a workforce skills management platform operated by <strong>Skillsmatrixapp Ltd</strong>
           (Company Number: [PLACEHOLDER]), registered in England and Wales.
           By creating an account you agree to these Terms of Service.
         </p>
@@ -53,7 +53,7 @@ export default function TermsOfService() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">6. Limitation of liability</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          To the maximum extent permitted by law, Conryx Ltd is not liable for any indirect, incidental,
+          To the maximum extent permitted by law, Skillsmatrixapp Ltd is not liable for any indirect, incidental,
           or consequential damages arising from the use of Skills Matrix App. Our total liability shall not
           exceed the fees paid by you in the 12 months preceding the claim.
         </p>

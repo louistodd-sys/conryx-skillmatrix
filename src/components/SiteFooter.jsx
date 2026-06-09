@@ -7,10 +7,10 @@ export default function SiteFooter() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           {/* Company info */}
           <div className="text-xs text-muted-foreground space-y-1">
-            <p className="font-semibold text-foreground">Conryx Ltd</p>
+            <p className="font-semibold text-foreground">Skillsmatrixapp Ltd</p>
             <p>Company No: [PLACEHOLDER] · ICO Reg: [PLACEHOLDER]</p>
             <p>[Registered Office Address, England]</p>
-            <p>© {new Date().getFullYear()} Conryx Ltd. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Skillsmatrixapp Ltd. All rights reserved.</p>
           </div>
 
           {/* Legal links */}
