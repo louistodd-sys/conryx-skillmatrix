@@ -319,6 +319,25 @@ export default function Dashboard() {
     setChecklistDismissed(true);
   };
 
+  const sparklineData = useMemo(() => {
+    const raw = data?.assessmentsRaw ?? [];
+    if (!raw.length) return [];
+    const now = new Date();
+    return Array.from({ length: 7 }, (_, i) => {
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - (6 - i) * 7);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 7);
+      const weekAssessments = raw.filter(a => {
+        const d = new Date(a.assessed_at || a.created_at);
+        return d >= weekStart && d < weekEnd;
+      });
+      const green = weekAssessments.filter(a => a.rating === 'green').length;
+      const total = weekAssessments.length;
+      return { week: i + 1, value: total > 0 ? Math.round((green / total) * 100) : null };
+    }).filter(d => d.value !== null);
+  }, [data?.assessmentsRaw]);
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -350,24 +369,6 @@ export default function Dashboard() {
   const expiryBuckets = bucketExpiries(data.expiries);
   const hasExpiries = data.expiries.length > 0;
   const isAdmin = user?.role === 'admin';
-
-  // Sparkline: last 7 weeks of assessment count as a trend proxy
-  const sparklineData = useMemo(() => {
-    if (!data?.assessmentsRaw) return [];
-    const now = new Date();
-    return Array.from({ length: 7 }, (_, i) => {
-      const weekStart = new Date(now);
-      weekStart.setDate(now.getDate() - (6 - i) * 7);
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 7);
-      const count = data.assessmentsRaw.filter(a => {
-        if (!a.assessed_date) return false;
-        const d = new Date(a.assessed_date);
-        return d >= weekStart && d < weekEnd;
-      }).length;
-      return { v: count };
-    });
-  }, [data?.assessmentsRaw]);
 
   return (
     <div className="space-y-6">
