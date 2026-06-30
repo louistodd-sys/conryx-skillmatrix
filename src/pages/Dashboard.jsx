@@ -319,6 +319,25 @@ export default function Dashboard() {
     setChecklistDismissed(true);
   };
 
+  const sparklineData = useMemo(() => {
+    const raw = data?.assessmentsRaw ?? [];
+    if (!raw.length) return [];
+    const now = new Date();
+    return Array.from({ length: 7 }, (_, i) => {
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - (6 - i) * 7);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 7);
+      const weekAssessments = raw.filter(a => {
+        const d = new Date(a.assessed_at || a.created_at);
+        return d >= weekStart && d < weekEnd;
+      });
+      const green = weekAssessments.filter(a => a.rating === 'green').length;
+      const total = weekAssessments.length;
+      return { week: i + 1, value: total > 0 ? Math.round((green / total) * 100) : null };
+    }).filter(d => d.value !== null);
+  }, [data?.assessmentsRaw]);
+
   if (loading) {
     return (
       <div className="space-y-6">
