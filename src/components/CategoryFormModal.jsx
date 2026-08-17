@@ -6,7 +6,10 @@ import { Input } from '@/components/ui/input';
 import useTierCheck from '@/hooks/useTierCheck';
 import UpgradePromptModal from '@/components/UpgradePromptModal';
 
-const PRESET_COLOURS = ['#DC2626', '#D97706', '#16A34A', '#2563EB', '#7C3AED', '#DB2777', '#0891B2', '#6B7280'];
+// Grouping colours only. The RAG hues (red #DC2626 / amber #D97706 / green #16A34A)
+// are deliberately absent: a category band painted in a status colour teaches the
+// eye to read grouping as compliance.
+const PRESET_COLOURS = ['#4F46E5', '#3730A3', '#0E7490', '#7C3AED', '#DB2777', '#B45309', '#475569', '#6B7280'];
 
 export default function CategoryFormModal({ categories, orgId, onClose, onSaved }) {
   const { checkLimit, upgradePrompt, clearPrompt } = useTierCheck();

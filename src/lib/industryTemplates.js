@@ -6,7 +6,7 @@ export const industryTemplates = [
     categories: [
       {
         name: 'Safety & Compliance',
-        colour: '#DC2626',
+        colour: '#4F46E5',
         skills: [
           { name: 'Manual Handling', scale_type: 'binary', requires_expiry: true },
           { name: 'Fire Safety', scale_type: 'binary', requires_expiry: true },
@@ -17,7 +17,7 @@ export const industryTemplates = [
       },
       {
         name: 'Machinery',
-        colour: '#2563EB',
+        colour: '#3730A3',
         skills: [
           { name: 'Forklift Operation', scale_type: 'levelled', requires_expiry: true },
           { name: 'CNC Operation', scale_type: 'levelled', requires_expiry: false },
@@ -27,7 +27,7 @@ export const industryTemplates = [
       },
       {
         name: 'Quality',
-        colour: '#16A34A',
+        colour: '#0E7490',
         skills: [
           { name: 'ISO 9001 Awareness', scale_type: 'binary', requires_expiry: true },
           { name: 'Quality Inspection', scale_type: 'levelled', requires_expiry: false },
@@ -43,7 +43,7 @@ export const industryTemplates = [
     categories: [
       {
         name: 'Food Safety',
-        colour: '#DC2626',
+        colour: '#4F46E5',
         skills: [
           { name: 'Food Hygiene Level 2', scale_type: 'binary', requires_expiry: true },
           { name: 'Food Hygiene Level 3', scale_type: 'binary', requires_expiry: true },
@@ -53,7 +53,7 @@ export const industryTemplates = [
       },
       {
         name: 'Operations',
-        colour: '#2563EB',
+        colour: '#3730A3',
         skills: [
           { name: 'Packing Line Operation', scale_type: 'levelled', requires_expiry: false },
           { name: 'Labelling Compliance', scale_type: 'binary', requires_expiry: false },
@@ -69,7 +69,7 @@ export const industryTemplates = [
     categories: [
       {
         name: 'Clinical',
-        colour: '#DC2626',
+        colour: '#4F46E5',
         skills: [
           { name: 'First Aid at Work', scale_type: 'binary', requires_expiry: true },
           { name: 'Medication Administration', scale_type: 'levelled', requires_expiry: true },
@@ -79,7 +79,7 @@ export const industryTemplates = [
       },
       {
         name: 'Safeguarding',
-        colour: '#D97706',
+        colour: '#B45309',
         skills: [
           { name: 'Safeguarding Adults', scale_type: 'binary', requires_expiry: true },
           { name: 'Safeguarding Children', scale_type: 'binary', requires_expiry: true },
@@ -88,7 +88,7 @@ export const industryTemplates = [
       },
       {
         name: 'Mandatory Training',
-        colour: '#2563EB',
+        colour: '#3730A3',
         skills: [
           { name: 'Health & Safety', scale_type: 'binary', requires_expiry: true },
           { name: 'Fire Safety', scale_type: 'binary', requires_expiry: true },
@@ -105,7 +105,7 @@ export const industryTemplates = [
     categories: [
       {
         name: 'Health & Safety',
-        colour: '#DC2626',
+        colour: '#4F46E5',
         skills: [
           { name: 'CSCS Card', scale_type: 'binary', requires_expiry: true },
           { name: 'Working at Height', scale_type: 'binary', requires_expiry: true },
@@ -115,7 +115,7 @@ export const industryTemplates = [
       },
       {
         name: 'Trade Skills',
-        colour: '#2563EB',
+        colour: '#3730A3',
         skills: [
           { name: 'Electrical Installation', scale_type: 'levelled', requires_expiry: true },
           { name: 'Plumbing', scale_type: 'levelled', requires_expiry: false },
@@ -132,7 +132,7 @@ export const industryTemplates = [
     categories: [
       {
         name: 'Compliance',
-        colour: '#DC2626',
+        colour: '#4F46E5',
         skills: [
           { name: 'Food Hygiene Level 2', scale_type: 'binary', requires_expiry: true },
           { name: 'Alcohol Licensing', scale_type: 'binary', requires_expiry: true },
@@ -141,7 +141,7 @@ export const industryTemplates = [
       },
       {
         name: 'Customer Service',
-        colour: '#16A34A',
+        colour: '#0E7490',
         skills: [
           { name: 'Till Operation', scale_type: 'levelled', requires_expiry: false },
           { name: 'Customer Service', scale_type: 'levelled', requires_expiry: false },
@@ -157,7 +157,7 @@ export const industryTemplates = [
     categories: [
       {
         name: 'Compliance',
-        colour: '#DC2626',
+        colour: '#4F46E5',
         skills: [
           { name: 'GDPR / Data Protection', scale_type: 'binary', requires_expiry: true },
           { name: 'Anti-Money Laundering', scale_type: 'binary', requires_expiry: true },
@@ -166,7 +166,7 @@ export const industryTemplates = [
       },
       {
         name: 'Professional Skills',
-        colour: '#2563EB',
+        colour: '#3730A3',
         skills: [
           { name: 'Project Management', scale_type: 'levelled', requires_expiry: false },
           { name: 'Excel / Spreadsheets', scale_type: 'levelled', requires_expiry: false },
