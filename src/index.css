@@ -234,6 +234,13 @@
   /* ── Print: a skills matrix is still a document people hand to auditors ── */
   @media print {
     .no-print { display: none !important; }
+
+    /* The app shell is a fixed-height, non-scrolling flex box for screen use.
+       Left as-is, printing clips everything to a single viewport. */
+    .app-shell { display: block !important; height: auto !important; overflow: visible !important; }
+    .app-main  { overflow: visible !important; height: auto !important; }
+    aside      { display: none !important; }
+
     .matrix-viewport {
       max-height: none !important;
       overflow: visible !important;
