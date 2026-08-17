@@ -76,6 +76,15 @@
     --rag-grey:        215 14% 58%;   /* Slate — readable */
     --rag-grey-light:  215 20% 95%;
     --rag-grey-text:   215 25% 30%;
+
+    /* ── Matrix surfaces ──────────────────────────────────────────────
+       These must be fully opaque: they paint the frozen name/score column
+       and the frozen header, which the rest of the grid scrolls underneath.
+       Any alpha here and the scrolled cells ghost through. */
+    --matrix-row:       0 0% 100%;
+    --matrix-row-alt:   220 20% 97%;
+    --matrix-row-hover: 197 58% 93%;
+    --matrix-head:      220 18% 93%;
   }
 
   .dark {
@@ -126,6 +135,11 @@
     --rag-grey:        215 14% 60%;
     --rag-grey-light:  215 20% 14%;
     --rag-grey-text:   215 14% 75%;
+
+    --matrix-row:       222 47% 9%;
+    --matrix-row-alt:   222 40% 12%;
+    --matrix-row-hover: 197 40% 18%;
+    --matrix-head:      222 40% 15%;
   }
 }
 
@@ -159,6 +173,74 @@
     font-family: var(--font-jakarta);
     font-weight: 600;
     line-height: 1.4;
+  }
+}
+
+@layer components {
+  /* ── Skills matrix grid ───────────────────────────────────────────────────
+     Row + column crosshair highlighting. Done in CSS rather than React state so
+     that hovering a cell in a large matrix costs nothing — no re-render, no
+     per-cell listeners. The column band is an over-tall pseudo-element on the
+     hovered cell, clipped by the scrolling viewport. */
+
+  .matrix-viewport {
+    position: relative;
+    scrollbar-width: thin;
+  }
+
+  /* Borders must sit inside the column width, or every column overflows by 1px. */
+  .matrix-table th,
+  .matrix-table td {
+    box-sizing: border-box;
+  }
+
+  /* Zebra striping lives in CSS (not inline styles) so :hover can override it. */
+  .matrix-row > td                 { background-color: hsl(var(--matrix-row)); }
+  .matrix-row:nth-child(even) > td { background-color: hsl(var(--matrix-row-alt)); }
+  .matrix-row:hover > td           { background-color: hsl(var(--matrix-row-hover)); }
+  .matrix-corner,
+  .matrix-foot > td                { background-color: hsl(var(--matrix-head)); }
+  .matrix-skillhead                { background-color: hsl(var(--matrix-row-alt)); }
+  .matrix-skillhead:hover          { background-color: hsl(var(--matrix-row-hover)); }
+
+  .matrix-cell { position: relative; }
+
+  .matrix-cell:hover::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -4000px;
+    bottom: -4000px;
+    background: hsl(var(--primary) / 0.09);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .matrix-cellbtn {
+    z-index: 1;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .matrix-cellbtn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.18);
+  }
+  .matrix-cellbtn:focus-visible,
+  .matrix-skillbtn:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 1px;
+  }
+
+  /* ── Print: a skills matrix is still a document people hand to auditors ── */
+  @media print {
+    .no-print { display: none !important; }
+    .matrix-viewport {
+      max-height: none !important;
+      overflow: visible !important;
+    }
+    .matrix-card { border: 1px solid #cbd5e1; box-shadow: none; }
+    .matrix-row { break-inside: avoid; }
+    .matrix-cellbtn { box-shadow: none !important; transform: none !important; }
   }
 }
 

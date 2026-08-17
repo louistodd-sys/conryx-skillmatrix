@@ -22,7 +22,7 @@ const RAG = {
   green: { label: 'Current',    bg: 'bg-green-100',  text: 'text-green-700',  border: 'border-green-300',  dot: 'bg-green-500',  Icon: CheckCircle2 },
   amber: { label: 'Expiring',   bg: 'bg-amber-100',  text: 'text-amber-700',  border: 'border-amber-300',  dot: 'bg-amber-500',  Icon: Clock },
   red:   { label: 'Gap',        bg: 'bg-red-100',    text: 'text-red-700',    border: 'border-red-300',    dot: 'bg-red-500',    Icon: AlertTriangle },
-  grey:  { label: 'Unassessed', bg: 'bg-gray-100',   text: 'text-gray-600',   border: 'border-gray-300',   dot: 'bg-gray-400',   Icon: MinusCircle },
+  grey:  { label: 'Not required', bg: 'bg-gray-100', text: 'text-gray-600',   border: 'border-gray-300',   dot: 'bg-gray-400',   Icon: MinusCircle },
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -450,9 +450,6 @@ export default function People() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <Users2 className="w-6 h-6 text-primary" /> People
-        </h1>
         <p className="text-sm text-muted-foreground mt-0.5">Training records directory — sorted by lowest compliance first</p>
       </div>
 

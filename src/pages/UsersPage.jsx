@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Plus, Search, Users, Mail, RefreshCw, XCircle, UserPlus,
+  Plus, Search, Users, Mail, RefreshCw, XCircle,
   Pencil, Trash2, AlertTriangle, X, Loader2, UserCog,
 } from 'lucide-react';
 import { apiClient } from '@/api/apiClient';
@@ -227,7 +227,6 @@ export default function UsersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Users</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {users.length} app user{users.length !== 1 ? 's' : ''} · {allEmployees.length} managed employee{allEmployees.length !== 1 ? 's' : ''}
           </p>

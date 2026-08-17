@@ -181,7 +181,6 @@ export default function MyProfile() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">My Skills Profile</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{user?.full_name} — {user?.email}</p>
         </div>
         <Button variant="outline" onClick={exportData} title="Download all personal data (GDPR Subject Access Request)">
