@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { TrendingUp, BarChart2, Users2, AlertTriangle, Calendar, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, LineChart, Line, Cell,
+  ResponsiveContainer, Cell,
 } from 'recharts';
 import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
@@ -207,9 +207,6 @@ export default function Analytics() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <TrendingUp className="w-6 h-6 text-primary" /> Analytics
-        </h1>
         <p className="text-sm text-muted-foreground mt-0.5">Organisation-wide skills & compliance insights</p>
       </div>
 

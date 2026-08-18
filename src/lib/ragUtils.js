@@ -50,17 +50,19 @@ export function getRAGStatus(assessment, skill, teamRequirement) {
  * Distinguishes between expiry-based red and proficiency-based red.
  */
 export function getRAGLabel(status, assessment, skill, teamRequirement) {
+  // Sentence case throughout, so these read the same wherever they appear — legend,
+  // tooltip, badge, CSV export.
   switch (status) {
     case 'green': return 'Current';
-    case 'amber': return 'Expiring Soon';
-    case 'grey': return 'Not Required';
+    case 'amber': return 'Expiring soon';
+    case 'grey': return 'Not required';
     case 'red': {
-      if (!assessment) return 'Not Assessed';
+      if (!assessment) return 'Required, not assessed';
       if (assessment.expiry_date) {
         const expDate = parseISO(assessment.expiry_date);
         if (isValid(expDate) && expDate < new Date()) return 'Expired';
       }
-      return 'Below Required Level';
+      return 'Below required level';
     }
     default: return 'Unknown';
   }

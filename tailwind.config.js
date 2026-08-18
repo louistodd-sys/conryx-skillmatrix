@@ -16,6 +16,15 @@ module.exports = {
         inter: ['var(--font-inter)'],
         jakarta: ['var(--font-jakarta)'],
       },
+      // Numeric weight utilities (font-600 … font-800) are used throughout the UI.
+      // Without these they resolve to nothing, so headings and metric values that
+      // were meant to be bold silently render at normal weight.
+      fontWeight: {
+        500: '500',
+        600: '600',
+        700: '700',
+        800: '800',
+      },
       fontSize: {
         '2xs': ['0.6875rem', { lineHeight: '1rem' }],
         'xs':  ['0.75rem',   { lineHeight: '1.125rem' }],

@@ -41,11 +41,12 @@ const STEPS = [
     iconClass: 'text-violet-600',
     bgClass: 'bg-violet-50',
     title: 'Skills Matrix',
-    body: 'Every employee × every skill on one page. Click any cell to record or update an assessment.',
+    body: 'Every person × every skill on one page — the spreadsheet you already know, but it keeps itself up to date.',
     highlights: [
-      'Filter by team or skill category',
-      'Colour-coded cells show RAG status instantly',
-      'Export the full matrix to CSV',
+      'Click a cell to assess one person; click a skill heading to assess the whole team',
+      'Filter by team, category, or "gaps & expiring only" to cut through the noise',
+      'The Ready column scores each person; the Coverage row scores each skill',
+      'Move around with the arrow keys, then export to CSV or print for your audit pack',
     ],
   },
   {

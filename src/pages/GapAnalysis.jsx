@@ -7,8 +7,7 @@ import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import EmptyState from '@/components/EmptyState';
 import RAGBar from '@/components/RAGBar';
-import RAGBadge from '@/components/RAGBadge';
-import { getRAGStatus, getProficiencyLabel } from '@/lib/ragUtils';
+import { getRAGStatus } from '@/lib/ragUtils';
 import { Link } from 'react-router-dom';
 
 export default function GapAnalysis() {
@@ -170,7 +169,6 @@ export default function GapAnalysis() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Gap Analysis</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Identify skills gaps and training needs</p>
         </div>
         <select
@@ -320,7 +318,7 @@ export default function GapAnalysis() {
                 {individualStats.map(m => (
                   <Link
                     key={m.user_id}
-                    to={`/people`}
+                    to={`/users/${m.user_id}`}
                     className="flex items-center gap-3 px-5 py-3 hover:bg-muted/30 transition-colors"
                   >
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-semibold shrink-0">

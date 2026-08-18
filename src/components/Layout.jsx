@@ -294,7 +294,7 @@ export default function Layout() {
     .toUpperCase();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="app-shell flex h-screen overflow-hidden bg-background">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -435,16 +435,14 @@ export default function Layout() {
             >
               <Menu className="w-5 h-5 text-foreground" />
             </button>
-            <div className="hidden lg:block">
-              <h1 className="font-jakarta text-xl font-700 text-foreground leading-tight">{pageTitle}</h1>
-            </div>
-            <div className="lg:hidden">
-              <h1 className="font-jakarta text-lg font-700 text-foreground leading-tight">{pageTitle}</h1>
-            </div>
+            {/* The single page title for the document — pages no longer repeat it. */}
+            <h1 className="font-jakarta text-lg lg:text-2xl font-700 text-foreground leading-tight">
+              {pageTitle}
+            </h1>
           </div>
 
           {/* Right: notification bell */}
-          <div className="flex items-center gap-2">
+          <div className="no-print flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
@@ -463,7 +461,7 @@ export default function Layout() {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="app-main flex-1 overflow-y-auto">
           <div className="w-full px-4 lg:px-6 py-6 animate-fade-in">
             <Outlet />
           </div>

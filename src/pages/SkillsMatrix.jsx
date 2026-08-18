@@ -1,91 +1,73 @@
-import { useState, useEffect } from 'react';
-import { Grid3X3, Search, Users } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  Grid3X3, Search, Download, Printer, Rows3, AlignJustify, X,
+  AlertTriangle, Clock, CheckCircle2, ChevronDown,
+} from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { format, parseISO, isValid } from 'date-fns';
 import { apiClient } from '@/api/apiClient';
 import useOrganisation from '@/lib/useOrganisation';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/EmptyState';
 import AssessmentModal from '@/components/AssessmentModal';
 import BulkAssessmentModal from '@/components/BulkAssessmentModal';
+import SkillsMatrixGrid from '@/components/matrix/SkillsMatrixGrid';
+import MatrixLegend from '@/components/matrix/MatrixLegend';
 import { getRAGStatus, getProficiencyLabel, getRAGLabel } from '@/lib/ragUtils';
 import { getLatestAssessments } from '@/utils/assessmentUtils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { RAG_THEME, coverageStyle } from '@/lib/ragTheme';
+import { buildMatrixCSV, downloadCSV } from '@/lib/matrixExport';
 
-// ─── Layout constants ──────────────────────────────────────────────────────
-const CELL  = 44;  // skill cell px (width + height)
-const NAME  = 180; // name column width px
-const COL   = 52;  // skill column width px
-const CAT_H = 36;  // category header row height px
+const DENSITY_KEY = 'matrix_density';
 
-// ─── Status colour palette ─────────────────────────────────────────────────
-const S = {
-  green: { bg: '#16a34a', fg: '#ffffff' },
-  amber: { bg: '#d97706', fg: '#ffffff' },
-  red:   { bg: '#dc2626', fg: '#ffffff' },
-  grey:  { bg: '#94a3b8', fg: '#ffffff' },
+const fmtDate = (d) => {
+  if (!d) return null;
+  const parsed = parseISO(d);
+  return isValid(parsed) ? format(parsed, 'd MMM yyyy') : d;
 };
 
-// Symbol shown inside each cell — ✓ for binary skills, numeric level for all others
-function getCellSymbol(assessment, skill) {
-  if (!assessment) return '—';
-  if (skill.scale_type === 'binary') return '✓';
-  return String(assessment.proficiency_level);
+/** The glyph inside a cell. Pass/fail skills read ✓ / ✕; levelled skills read 0–4. */
+function cellSymbol(assessment, skill) {
+  if (!assessment) return '–';
+  if (skill.scale_type === 'binary') return Number(assessment.proficiency_level) >= 1 ? '✓' : '✕';
+  return String(assessment.proficiency_level ?? '–');
 }
 
-// Coverage % → colour style
-function pctStyle(pct) {
-  if (pct >= 80) return { bg: '#dcfce7', fg: '#15803d' };
-  if (pct >= 50) return { bg: '#fef3c7', fg: '#92400e' };
-  return { bg: '#fee2e2', fg: '#991b1b' };
-}
+const SORTS = {
+  name:   { label: 'Name (A–Z)' },
+  risk:   { label: 'Least ready first' },
+  gaps:   { label: 'Most gaps first' },
+};
 
-// ─── Status key legend ─────────────────────────────────────────────────────
-function MatrixLegend() {
-  return (
-    <div className="rounded-xl border border-border bg-card shadow-sm px-5 py-3 space-y-2">
-      <div className="flex items-center gap-4 flex-wrap">
-        {[['green','Current','#16a34a'],['amber','Expiring Soon','#d97706'],['red','Gap / Required','#dc2626'],['grey','Not Required','#94a3b8']].map(([s,label,bg]) => (
-          <div key={s} className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded" style={{ background: bg }} />
-            <span className="text-xs font-medium text-foreground">{label}</span>
-          </div>
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-x-5 gap-y-0.5 text-xs text-muted-foreground border-t border-border pt-2">
-        <span><span className="font-semibold text-foreground">0</span> Not Trained</span>
-        <span><span className="font-semibold text-foreground">1</span> Awareness</span>
-        <span><span className="font-semibold text-foreground">2</span> Working Knowledge</span>
-        <span><span className="font-semibold text-foreground">3</span> Competent</span>
-        <span><span className="font-semibold text-foreground">4</span> Expert</span>
-        <span className="ml-2"><span className="font-semibold text-foreground">✓</span> Competent (binary)</span>
-        <span><span className="font-semibold text-foreground">—</span> Not Assessed</span>
-      </div>
-    </div>
-  );
-}
-
-// ─── Main component ────────────────────────────────────────────────────────
 export default function SkillsMatrix() {
   const { org, user } = useOrganisation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const [teams, setTeams]                   = useState([]);
-  const [selectedTeam, setSelectedTeam]     = useState(searchParams.get('team') || 'all');
-  const [members, setMembers]               = useState([]);
-  const [skills, setSkills]                 = useState([]);
-  const [categories, setCategories]         = useState([]);
-  const [assessments, setAssessments]       = useState([]);
-  const [reqSkills, setReqSkills]           = useState([]);
-  const [loading, setLoading]               = useState(true);
+  const [teams, setTeams]             = useState([]);
+  const [members, setMembers]         = useState([]);
+  const [skills, setSkills]           = useState([]);
+  const [categories, setCategories]   = useState([]);
+  const [assessments, setAssessments] = useState([]);
+  const [reqSkills, setReqSkills]     = useState([]);
+  const [loading, setLoading]         = useState(true);
 
-  const [searchMember, setSearchMember]         = useState('');
-  const [showOnlyRequired, setShowOnlyRequired] = useState(false);
-  const [showOnlyExpiring, setShowOnlyExpiring] = useState(false);
-  const [assessingCell, setAssessingCell]       = useState(null);
-  const [bulkSkill, setBulkSkill]               = useState(null);
+  const [selectedTeam, setSelectedTeam]     = useState(searchParams.get('team') || 'all');
+  const [selectedCategory, setSelectedCat]  = useState('all');
+  const [searchMember, setSearchMember]     = useState('');
+  const [showOnlyRequired, setOnlyRequired] = useState(false);
+  const [showOnlyIssues, setOnlyIssues]     = useState(false);
+  const [sortBy, setSortBy]                 = useState('name');
+  const [density, setDensity]               = useState(
+    () => localStorage.getItem(DENSITY_KEY) || 'comfortable'
+  );
+
+  const [assessingCell, setAssessingCell] = useState(null);
+  const [bulkSkill, setBulkSkill]         = useState(null);
 
   useEffect(() => { if (org) loadData(); }, [org]);
+  useEffect(() => { localStorage.setItem(DENSITY_KEY, density); }, [density]);
 
   async function loadData() {
     const [t, tm, s, c, a, trs] = await Promise.all([
@@ -110,621 +92,432 @@ export default function SkillsMatrix() {
     }
   }
 
-  if (loading) return <div className="h-96 rounded-xl bg-muted animate-pulse" />;
+  const currentAssessments = useMemo(() => getLatestAssessments(assessments), [assessments]);
 
-  // Latest assessment per user+skill
-  const currentAssessments = getLatestAssessments(assessments);
+  // ── People in scope ────────────────────────────────────────────────────────
+  const peopleInScope = useMemo(() => {
+    let scoped = members;
+    if (selectedTeam !== 'all') {
+      const ids = new Set(members.filter(m => m.team_id === selectedTeam).map(m => m.user_id));
+      scoped = members.filter(m => ids.has(m.user_id));
+    }
+    const byUser = {};
+    scoped.forEach(m => { if (!byUser[m.user_id]) byUser[m.user_id] = m; });
+    return Object.values(byUser);
+  }, [members, selectedTeam]);
 
-  // Filter + deduplicate members
-  let filteredMembers = members;
-  if (selectedTeam !== 'all') {
-    const ids = new Set(members.filter(m => m.team_id === selectedTeam).map(m => m.user_id));
-    filteredMembers = members.filter(m => ids.has(m.user_id));
-  }
-  const memberMap = {};
-  filteredMembers.forEach(m => { if (!memberMap[m.user_id]) memberMap[m.user_id] = m; });
-  let uniqueMembers = Object.values(memberMap);
-  uniqueMembers.sort((a, b) => (a.user_name || '').localeCompare(b.user_name || ''));
-  if (searchMember) {
-    uniqueMembers = uniqueMembers.filter(m =>
-      (m.user_name || '').toLowerCase().includes(searchMember.toLowerCase())
-    );
-  }
-
-  // Requirement lookup
+  // Requirement lookup for a person × skill
   const getReq = (userId, skillId) => {
     if (selectedTeam !== 'all')
       return reqSkills.find(r => r.team_id === selectedTeam && r.skill_id === skillId);
-    const tm = members.find(m => m.user_id === userId);
-    return tm ? reqSkills.find(r => r.team_id === tm.team_id && r.skill_id === skillId) : undefined;
+    const memberships = members.filter(m => m.user_id === userId).map(m => m.team_id);
+    const matches = memberships
+      .map(tid => reqSkills.find(r => r.team_id === tid && r.skill_id === skillId))
+      .filter(Boolean);
+    // If someone sits in several teams, the strictest requirement wins.
+    return matches.sort((a, b) => (b.minimum_proficiency ?? 1) - (a.minimum_proficiency ?? 1))[0];
   };
 
-  // Skill visibility filters
-  let visibleSkills = skills;
-  if (showOnlyRequired && selectedTeam !== 'all') {
-    const reqIds = new Set(
-      reqSkills.filter(r => r.team_id === selectedTeam && r.is_required).map(r => r.skill_id)
-    );
-    visibleSkills = visibleSkills.filter(s => reqIds.has(s.id));
-  }
-  if (showOnlyExpiring) {
-    visibleSkills = visibleSkills.filter(s =>
-      uniqueMembers.some(m => {
-        const st = getRAGStatus(currentAssessments[`${m.user_id}-${s.id}`], s, getReq(m.user_id, s.id));
-        return st === 'amber' || st === 'red';
-      })
-    );
-  }
+  // ── Cell builder (memoised map: one entry per person × skill) ──────────────
+  const cellMap = useMemo(() => {
+    const map = {};
+    for (const m of peopleInScope) {
+      for (const skill of skills) {
+        const assessment = currentAssessments[`${m.user_id}-${skill.id}`];
+        const req = getReq(m.user_id, skill.id);
+        const status = getRAGStatus(assessment, skill, req);
+        map[`${m.user_id}-${skill.id}`] = {
+          status,
+          symbol: cellSymbol(assessment, skill),
+          label: getRAGLabel(status, assessment, skill, req),
+          levelLabel: assessment
+            ? getProficiencyLabel(assessment.proficiency_level, skill.scale_type)
+            : 'Not assessed',
+          requiredLabel: req?.is_required
+            ? `at least ${getProficiencyLabel(req.minimum_proficiency ?? 1, skill.scale_type)}`
+            : null,
+          assessedDate: fmtDate(assessment?.assessed_date),
+          expiryDate: fmtDate(assessment?.expiry_date),
+          assessedBy: assessment?.assessed_by_name || null,
+          notes: assessment?.notes || null,
+          assessment,
+        };
+      }
+    }
+    return map;
+  }, [peopleInScope, skills, currentAssessments, reqSkills, selectedTeam, members]);
 
-  const groupedSkills = categories
-    .map(cat => ({ ...cat, skills: visibleSkills.filter(s => s.category_id === cat.id) }))
-    .filter(g => g.skills.length > 0);
-  const allVisibleSkills = groupedSkills.flatMap(g => g.skills);
+  const getCell = (userId, skillId) =>
+    cellMap[`${userId}-${skillId}`] || { status: 'grey', symbol: '–', label: 'Not required', levelLabel: 'Not assessed' };
+
+  // ── Two levels of filtering ───────────────────────────────────────────────
+  // Scope = what the user is looking at (team + category). Percentages and per-person
+  // scores are always measured against the scope, never against the reduced view — so
+  // switching on "gaps only" narrows what you see without making everybody's readiness
+  // score collapse to 0%.
+  const scopeSkills = useMemo(
+    () => selectedCategory === 'all' ? skills : skills.filter(s => s.category_id === selectedCategory),
+    [skills, selectedCategory]
+  );
+
+  // ── Visible skills (scope, then the reducing filters) ─────────────────────
+  const visibleSkills = useMemo(() => {
+    let list = scopeSkills;
+    if (showOnlyRequired && selectedTeam !== 'all') {
+      const reqIds = new Set(
+        reqSkills.filter(r => r.team_id === selectedTeam && r.is_required).map(r => r.skill_id)
+      );
+      list = list.filter(s => reqIds.has(s.id));
+    }
+    if (showOnlyIssues) {
+      list = list.filter(s =>
+        peopleInScope.some(m => {
+          const st = getCell(m.user_id, s.id).status;
+          return st === 'red' || st === 'amber';
+        })
+      );
+    }
+    return list;
+  }, [scopeSkills, showOnlyRequired, showOnlyIssues, selectedTeam, reqSkills, peopleInScope, cellMap]);
+
+  const groupedSkills = useMemo(() => {
+    const known = categories
+      .map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        colour: cat.colour || '#64748b',
+        skills: visibleSkills.filter(s => s.category_id === cat.id),
+      }))
+      .filter(g => g.skills.length > 0);
+    // Never silently drop a skill just because its category was deleted.
+    const orphans = visibleSkills.filter(s => !categories.some(c => c.id === s.category_id));
+    if (orphans.length) {
+      known.push({ id: '__uncategorised', name: 'Uncategorised', colour: '#94a3b8', skills: orphans });
+    }
+    return known;
+  }, [categories, visibleSkills]);
+
+  const flatSkills = useMemo(() => groupedSkills.flatMap(g => g.skills), [groupedSkills]);
+
+  // ── Rows, with per-person readiness ───────────────────────────────────────
+  const rows = useMemo(() => {
+    let list = peopleInScope.map(m => {
+      const counts = { green: 0, amber: 0, red: 0, grey: 0 };
+      // Counted over the scope, not the reduced view: a person's readiness is a fact
+      // about them, not about which columns happen to be on screen.
+      scopeSkills.forEach(s => { counts[getCell(m.user_id, s.id).status]++; });
+      // Readiness counts only the skills that actually apply to this person.
+      const tracked = counts.green + counts.amber + counts.red;
+      return {
+        id: m.user_id,
+        name: m.user_name || 'Unknown',
+        badge: m.is_managed_member ? 'Managed' : null,
+        counts,
+        requiredTotal: tracked,
+        score: tracked > 0 ? Math.round((counts.green / tracked) * 100) : null,
+      };
+    });
+
+    if (searchMember.trim()) {
+      const q = searchMember.trim().toLowerCase();
+      list = list.filter(r => r.name.toLowerCase().includes(q));
+    }
+    if (showOnlyIssues) {
+      list = list.filter(r => r.counts.red > 0 || r.counts.amber > 0);
+    }
+
+    const byName = (a, b) => a.name.localeCompare(b.name);
+    if (sortBy === 'risk') {
+      list.sort((a, b) => (a.score ?? 101) - (b.score ?? 101) || byName(a, b));
+    } else if (sortBy === 'gaps') {
+      list.sort((a, b) => b.counts.red - a.counts.red || b.counts.amber - a.counts.amber || byName(a, b));
+    } else {
+      list.sort(byName);
+    }
+    return list;
+  }, [peopleInScope, scopeSkills, cellMap, searchMember, showOnlyIssues, sortBy]);
+
+  // ── Per-skill coverage (of the people the skill applies to) ───────────────
+  const coverage = useMemo(() => {
+    const out = {};
+    flatSkills.forEach(skill => {
+      let green = 0, tracked = 0;
+      // Over everyone in scope, not just the rows on screen — otherwise "gaps only"
+      // would report 0% coverage for skills the rest of the team is current on.
+      peopleInScope.forEach(m => {
+        const st = getCell(m.user_id, skill.id).status;
+        if (st === 'grey') return;
+        tracked++;
+        if (st === 'green') green++;
+      });
+      // null rather than 0: nobody in view needs this skill, so there is nothing to score.
+      out[skill.id] = tracked > 0 ? Math.round((green / tracked) * 100) : null;
+    });
+    return out;
+  }, [flatSkills, peopleInScope, cellMap]);
+
+  // Headline numbers describe the whole selected team + category, so they stay stable
+  // (and quotable in a management meeting) while the user filters the grid below.
+  const totals = useMemo(() => {
+    const t = { green: 0, amber: 0, red: 0, grey: 0 };
+    peopleInScope.forEach(m => {
+      scopeSkills.forEach(s => { t[getCell(m.user_id, s.id).status]++; });
+    });
+    const tracked = t.green + t.amber + t.red;
+    return { ...t, tracked, overall: tracked > 0 ? Math.round((t.green / tracked) * 100) : null };
+  }, [peopleInScope, scopeSkills, cellMap]);
+
+  const visibleTeams = teams.filter(t => user?.role === 'admin' || t.manager_ids?.includes(user?.id));
+  const teamLabel = selectedTeam === 'all'
+    ? 'All teams'
+    : (teams.find(t => t.id === selectedTeam)?.name || 'Team');
+
+  const filtersActive =
+    selectedCategory !== 'all' || showOnlyRequired || showOnlyIssues || searchMember.trim() !== '';
+
+  const clearFilters = () => {
+    setSelectedCat('all');
+    setOnlyRequired(false);
+    setOnlyIssues(false);
+    setSearchMember('');
+  };
+
+  const handleExport = () => {
+    const csv = buildMatrixCSV({
+      orgName: org?.name,
+      teamLabel,
+      members: rows,
+      categories: groupedSkills,
+      getCell,
+      coverage,
+    });
+    const slug = (org?.name || 'skills').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    downloadCSV(csv, `${slug}-skills-matrix-${new Date().toISOString().slice(0, 10)}.csv`);
+  };
+
+  const openAssessment = (member, skill, cell) => setAssessingCell({
+    userId: member.id, userName: member.name, skill, assessment: cell.assessment,
+  });
+
+  // ── Loading / empty ───────────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-11 rounded-xl bg-muted animate-pulse" />
+        <div className="h-9 w-2/3 rounded-lg bg-muted animate-pulse" />
+        <div className="h-96 rounded-xl bg-muted animate-pulse" />
+      </div>
+    );
+  }
 
   if (skills.length === 0) {
     return (
       <EmptyState
         icon={Grid3X3}
-        title="Skills Matrix"
-        description="Add skills to your library first to see the matrix view."
-        actionLabel="Go to Skills Library"
+        title="Your matrix is waiting on a skills list"
+        description="Add the skills you track — or import a ready-made set for your industry — and every person you add will appear here automatically."
+        actionLabel="Set up skills"
         onAction={() => navigate('/skills-library')}
       />
     );
   }
 
-  // Per-skill coverage %
-  const skillCompliance = {};
-  allVisibleSkills.forEach(skill => {
-    let green = 0;
-    uniqueMembers.forEach(m => {
-      if (getRAGStatus(currentAssessments[`${m.user_id}-${skill.id}`], skill, getReq(m.user_id, skill.id)) === 'green')
-        green++;
-    });
-    skillCompliance[skill.id] = uniqueMembers.length > 0
-      ? Math.round((green / uniqueMembers.length) * 100)
-      : 0;
-  });
-
-  // Overall coverage across all visible skills
-  const overallCoverage = allVisibleSkills.length > 0 && uniqueMembers.length > 0
-    ? Math.round(allVisibleSkills.reduce((sum, s) => sum + (skillCompliance[s.id] ?? 0), 0) / allVisibleSkills.length)
-    : null;
-
-  // Shared border styles
-  const catBorder = (ci) => ci > 0 ? '3px solid white' : '1px solid hsl(var(--border))';
-  const cellBorder = (si, ci) =>
-    si === 0 && ci > 0 ? '3px solid white' : '1px solid hsl(var(--border))';
+  if (members.length === 0) {
+    return (
+      <EmptyState
+        icon={Grid3X3}
+        title="Add people to see your matrix"
+        description="You have a skills list ready. Create a team and add your people — you do not need to give them logins to track their training."
+        actionLabel="Create a team"
+        onAction={() => navigate('/teams')}
+      />
+    );
+  }
 
   return (
-    <div className="space-y-5">
-      {/* ── Title ── */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Skills Matrix</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          {uniqueMembers.length} member{uniqueMembers.length !== 1 ? 's' : ''} ·{' '}
-          {allVisibleSkills.length} skill{allVisibleSkills.length !== 1 ? 's' : ''}
-        </p>
+    <div className="space-y-4">
+      {/* ── Summary strip ───────────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-stretch gap-3">
+        <SummaryTile
+          label="Overall readiness"
+          value={totals.overall === null ? '—' : `${totals.overall}%`}
+          hint={`${totals.green} of ${totals.tracked} tracked assessments current · ${teamLabel}`}
+          tone={totals.overall === null ? null : coverageStyle(totals.overall)}
+          wide
+        />
+        <SummaryTile
+          label="Gaps"
+          value={totals.red}
+          hint="Expired, below level, or required but unassessed"
+          icon={AlertTriangle}
+          tone={totals.red > 0 ? { bg: RAG_THEME.red.chipBg, fg: RAG_THEME.red.chipFg } : null}
+        />
+        <SummaryTile
+          label="Expiring soon"
+          value={totals.amber}
+          hint="Inside the renewal warning window"
+          icon={Clock}
+          tone={totals.amber > 0 ? { bg: RAG_THEME.amber.chipBg, fg: RAG_THEME.amber.chipFg } : null}
+        />
+        <SummaryTile
+          label="Current"
+          value={totals.green}
+          hint="At or above the required level"
+          icon={CheckCircle2}
+          tone={{ bg: RAG_THEME.green.chipBg, fg: RAG_THEME.green.chipFg }}
+        />
       </div>
 
-      {/* ── Legend ── */}
       <MatrixLegend />
 
-      {/* ── Controls ── */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <select
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm font-medium"
-          value={selectedTeam}
-          onChange={e => setSelectedTeam(e.target.value)}
-        >
-          {user?.role === 'admin' && <option value="all">All Teams</option>}
-          {teams
-            .filter(t => user?.role === 'admin' || t.manager_ids?.includes(user?.id))
-            .map(t => <option key={t.id} value={t.id}>{t.name}</option>)
-          }
-        </select>
-
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Search members…"
-            value={searchMember}
-            onChange={e => setSearchMember(e.target.value)}
-            className="pl-8 h-9 w-48 text-sm"
-          />
-        </div>
-
-        {selectedTeam !== 'all' && (
-          <label className="flex items-center gap-1.5 text-sm text-muted-foreground cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={showOnlyRequired}
-              onChange={e => setShowOnlyRequired(e.target.checked)}
-              className="rounded border-border"
-            />
-            Required only
-          </label>
-        )}
-        <label className="flex items-center gap-1.5 text-sm text-muted-foreground cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={showOnlyExpiring}
-            onChange={e => setShowOnlyExpiring(e.target.checked)}
-            className="rounded border-border"
-          />
-          Gaps / expiring only
-        </label>
-
-        {overallCoverage !== null && (
-          <span
-            className="ml-auto text-sm font-semibold px-3 py-1 rounded-full"
-            style={pctStyle(overallCoverage)}
-          >
-            {overallCoverage}% overall coverage
-          </span>
-        )}
-      </div>
-
-      {/* ── Desktop matrix ── */}
-      <div className="hidden md:block rounded-xl border border-border overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <TooltipProvider delayDuration={100}>
-            <table
-              style={{
-                borderCollapse: 'separate',
-                borderSpacing: 0,
-                width: 'max-content',
-              }}
+      {/* ── Toolbar ─────────────────────────────────────────────────────────── */}
+      <div className="no-print space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Field label="Team">
+            <select
+              className="h-9 rounded-md border border-input bg-background pl-2.5 pr-7 text-sm font-medium"
+              value={selectedTeam}
+              onChange={e => { setSelectedTeam(e.target.value); setOnlyRequired(false); }}
             >
-              <thead>
-                {/* ── Row 1: Category colour bands ── */}
-                <tr>
-                  <th
-                    style={{
-                      position: 'sticky',
-                      left: 0,
-                      top: 0,
-                      zIndex: 40,
-                      width: NAME,
-                      minWidth: NAME,
-                      maxWidth: NAME,
-                      height: CAT_H,
-                      padding: '0 16px',
-                      background: 'hsl(var(--muted) / 0.6)',
-                      borderBottom: '1px solid hsl(var(--border))',
-                      borderRight: '2px solid hsl(var(--border))',
-                      textAlign: 'left',
-                    }}
-                  >
-                    <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'hsl(var(--muted-foreground))' }}>
-                      Team Member
-                    </span>
-                  </th>
-                  {groupedSkills.map((cat, ci) => (
-                    <th
-                      key={cat.id}
-                      colSpan={cat.skills.length}
-                      style={{
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 20,
-                        background: cat.colour || '#6B7280',
-                        color: '#ffffff',
-                        height: CAT_H,
-                        padding: '0 8px',
-                        fontSize: 13,
-                        fontWeight: 800,
-                        letterSpacing: '0.06em',
-                        textTransform: 'uppercase',
-                        textAlign: 'center',
-                        whiteSpace: 'nowrap',
-                        borderBottom: '2px solid white',
-                        borderLeft: catBorder(ci),
-                      }}
-                    >
-                      {cat.name}
-                    </th>
-                  ))}
-                </tr>
+              {user?.role === 'admin' && <option value="all">All teams</option>}
+              {visibleTeams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          </Field>
 
-                {/* ── Row 2: Skill names (vertical) ── */}
-                <tr>
-                  <th
-                    style={{
-                      position: 'sticky',
-                      left: 0,
-                      top: CAT_H,
-                      zIndex: 40,
-                      width: NAME,
-                      minWidth: NAME,
-                      maxWidth: NAME,
-                      background: 'hsl(var(--muted) / 0.6)',
-                      borderBottom: '2px solid hsl(var(--border))',
-                      borderRight: '2px solid hsl(var(--border))',
-                    }}
-                  />
-                  {groupedSkills.map((cat, ci) =>
-                    cat.skills.map((skill, si) => (
-                      <th
-                        key={skill.id}
-                        className="hover:bg-slate-50 transition-colors"
-                        style={{
-                          position: 'sticky',
-                          top: CAT_H,
-                          zIndex: 10,
-                          width: COL,
-                          minWidth: COL,
-                          height: 130,
-                          background: '#f8fafc',
-                          borderBottom: '2px solid hsl(var(--border))',
-                          borderLeft: cellBorder(si, ci),
-                          padding: 0,
-                          verticalAlign: 'bottom',
-                          overflow: 'visible',
-                        }}
-                      >
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              className="group"
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'flex-end',
-                                paddingBottom: 8,
-                                background: 'transparent',
-                                border: 'none',
-                                cursor: 'pointer',
-                              }}
-                              onClick={() => setBulkSkill(skill)}
-                            >
-                              <div
-                                style={{
-                                  flex: 1,
-                                  display: 'flex',
-                                  alignItems: 'flex-end',
-                                  paddingLeft: Math.floor(COL / 2) - 2,
-                                  overflow: 'visible',
-                                  width: '100%',
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    display: 'block',
-                                    transformOrigin: 'left bottom',
-                                    transform: 'rotate(-45deg)',
-                                    whiteSpace: 'nowrap',
-                                    fontSize: 12,
-                                    fontWeight: 600,
-                                    color: 'hsl(var(--foreground))',
-                                    lineHeight: 1.3,
-                                    userSelect: 'none',
-                                  }}
-                                >
-                                  {skill.name}
-                                </span>
-                              </div>
-                              <Users
-                                style={{ width: 13, height: 13, color: 'hsl(var(--muted-foreground))', marginTop: 4, flexShrink: 0 }}
-                                className="opacity-30 group-hover:opacity-100 transition-opacity"
-                              />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="right">
-                            <p className="font-semibold">{skill.name}</p>
-                            <p className="text-xs text-muted-foreground">{cat.name}</p>
-                            <p className="text-xs mt-1 text-primary">Click to bulk-assess all members</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </th>
-                    ))
-                  )}
-                </tr>
-              </thead>
+          <Field label="Category">
+            <select
+              className="h-9 rounded-md border border-input bg-background pl-2.5 pr-7 text-sm font-medium"
+              value={selectedCategory}
+              onChange={e => setSelectedCat(e.target.value)}
+            >
+              <option value="all">All categories</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </Field>
 
-              <tbody>
-                {uniqueMembers.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={allVisibleSkills.length + 1}
-                      style={{ padding: '48px 16px', textAlign: 'center', fontSize: 14, color: 'hsl(var(--muted-foreground))' }}
-                    >
-                      No members match your filters.
-                    </td>
-                  </tr>
-                )}
+          <Field label="Sort people by">
+            <select
+              className="h-9 rounded-md border border-input bg-background pl-2.5 pr-7 text-sm font-medium"
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value)}
+            >
+              {Object.entries(SORTS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+            </select>
+          </Field>
 
-                {uniqueMembers.map((member, ri) => {
-                  const rowBg = ri % 2 === 0 ? 'hsl(var(--card))' : 'hsl(var(--muted) / 0.12)';
-                  // RAG summary counts for this member
-                  let mg = 0, ma = 0, mr = 0;
-                  allVisibleSkills.forEach(s => {
-                    const st = getRAGStatus(currentAssessments[`${member.user_id}-${s.id}`], s, getReq(member.user_id, s.id));
-                    if (st === 'green') mg++;
-                    else if (st === 'amber') ma++;
-                    else if (st === 'red') mr++;
-                  });
-                  return (
-                    <tr key={member.user_id}>
-                      {/* Sticky name */}
-                      <td
-                        style={{
-                          position: 'sticky',
-                          left: 0,
-                          zIndex: 10,
-                          width: NAME,
-                          minWidth: NAME,
-                          maxWidth: NAME,
-                          padding: '6px 16px',
-                          backgroundColor: rowBg,
-                          borderBottom: '1px solid hsl(var(--border))',
-                          borderRight: '2px solid hsl(var(--border))',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        <span style={{ fontSize: 14, fontWeight: 600, color: 'hsl(var(--foreground))' }}>
-                          {member.user_name || 'Unknown'}
-                        </span>
-                        <div style={{ display: 'flex', gap: 4, marginTop: 3 }}>
-                          {mg > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#15803d', background: '#dcfce7', borderRadius: 4, padding: '1px 5px' }}>{mg}✓</span>}
-                          {ma > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#92400e', background: '#fef3c7', borderRadius: 4, padding: '1px 5px' }}>{ma}!</span>}
-                          {mr > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#991b1b', background: '#fee2e2', borderRadius: 4, padding: '1px 5px' }}>{mr}✗</span>}
-                          {member.is_managed_member && (
-                            <span style={{ fontSize: 10, color: 'hsl(var(--muted-foreground))', fontWeight: 400 }}>Managed</span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Skill cells */}
-                      {groupedSkills.map((cat, ci) =>
-                        cat.skills.map((skill, si) => {
-                          const assessment = currentAssessments[`${member.user_id}-${skill.id}`];
-                          const req        = getReq(member.user_id, skill.id);
-                          const status     = getRAGStatus(assessment, skill, req);
-                          const sym        = getCellSymbol(assessment, skill);
-                          const label      = getRAGLabel(status, assessment, skill, req);
-                          const profLabel  = getProficiencyLabel(assessment?.proficiency_level, skill.scale_type);
-
-                          return (
-                            <td
-                              key={skill.id}
-                              style={{
-                                padding: '3px 5px',
-                                backgroundColor: rowBg,
-                                borderBottom: '1px solid hsl(var(--border))',
-                                borderLeft: cellBorder(si, ci),
-                                textAlign: 'center',
-                              }}
-                            >
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <button
-                                    className="rounded-md transition-all hover:scale-110 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary active:scale-95"
-                                    style={{
-                                      width: CELL,
-                                      height: CELL,
-                                      background: S[status].bg,
-                                      color: S[status].fg,
-                                      fontSize: 17,
-                                      fontWeight: 800,
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      lineHeight: 1,
-                                      boxShadow: 'none',
-                                    }}
-                                    onClick={() => setAssessingCell({ userId: member.user_id, userName: member.user_name, skill, assessment })}
-                                    aria-label={`${member.user_name} — ${skill.name}: ${label}`}
-                                  >
-                                    {sym}
-                                  </button>
-                                </TooltipTrigger>
-                                <TooltipContent side="right" className="w-56">
-                                  <p className="font-semibold text-sm">{member.user_name}</p>
-                                  <p className="text-xs text-muted-foreground mb-2">{skill.name}</p>
-                                  <div className="space-y-0.5 text-xs">
-                                    <p><span className="font-medium">Status:</span> {label}</p>
-                                    <p><span className="font-medium">Level:</span> {profLabel}</p>
-                                    {assessment?.assessed_date && (
-                                      <p><span className="font-medium">Assessed:</span> {assessment.assessed_date}</p>
-                                    )}
-                                    {assessment?.expiry_date && (
-                                      <p><span className="font-medium">Expires:</span> {assessment.expiry_date}</p>
-                                    )}
-                                    {assessment?.assessed_by_name && (
-                                      <p><span className="font-medium">By:</span> {assessment.assessed_by_name}</p>
-                                    )}
-                                    {assessment?.notes && (
-                                      <p className="italic text-muted-foreground">"{assessment.notes}"</p>
-                                    )}
-                                  </div>
-                                  <p className="text-xs text-primary mt-2">Click to assess</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </td>
-                          );
-                        })
-                      )}
-                    </tr>
-                  );
-                })}
-
-                {/* ── Coverage % footer ── */}
-                {uniqueMembers.length > 0 && (
-                  <tr style={{ borderTop: '2px solid hsl(var(--border))' }}>
-                    <td
-                      style={{
-                        position: 'sticky',
-                        left: 0,
-                        zIndex: 10,
-                        width: NAME,
-                        minWidth: NAME,
-                        maxWidth: NAME,
-                        padding: '8px 16px',
-                        background: 'hsl(var(--muted) / 0.5)',
-                        borderRight: '2px solid hsl(var(--border))',
-                        fontSize: 11,
-                        fontWeight: 800,
-                        color: 'hsl(var(--muted-foreground))',
-                        letterSpacing: '0.08em',
-                        textTransform: 'uppercase',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      Coverage %
-                    </td>
-                    {groupedSkills.map((cat, ci) =>
-                      cat.skills.map((skill, si) => {
-                        const pct = skillCompliance[skill.id] ?? 0;
-                        const ps  = pctStyle(pct);
-                        return (
-                          <td
-                            key={skill.id}
-                            style={{
-                              textAlign: 'center',
-                              padding: '6px 5px',
-                              background: 'hsl(var(--muted) / 0.5)',
-                              borderLeft: cellBorder(si, ci),
-                            }}
-                          >
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div
-                                  className="rounded font-bold cursor-default"
-                                  style={{
-                                    background: ps.bg,
-                                    color: ps.fg,
-                                    fontSize: 13,
-                                    padding: '4px 2px',
-                                    textAlign: 'center',
-                                  }}
-                                >
-                                  {pct}%
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-xs">{skill.name}: {pct}% current</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </td>
-                        );
-                      })
-                    )}
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </TooltipProvider>
-        </div>
-      </div>
-
-      {/* ── Mobile: card per person ── */}
-      <div className="md:hidden space-y-3">
-        {uniqueMembers.length === 0 && (
-          <p className="py-12 text-center text-sm text-muted-foreground">
-            No members match your filters.
-          </p>
-        )}
-        {uniqueMembers.map(member => {
-          let g = 0, a = 0, r = 0, gr = 0;
-          allVisibleSkills.forEach(skill => {
-            const st = getRAGStatus(
-              currentAssessments[`${member.user_id}-${skill.id}`],
-              skill,
-              getReq(member.user_id, skill.id)
-            );
-            if (st === 'green') g++;
-            else if (st === 'amber') a++;
-            else if (st === 'red') r++;
-            else gr++;
-          });
-
-          return (
-            <div key={member.user_id} className="bg-card border border-border rounded-xl overflow-hidden">
-              {/* Member row header */}
-              <div className="flex items-center justify-between px-4 py-3 bg-muted/20 border-b border-border">
-                <div>
-                  <p className="text-[15px] font-bold text-foreground leading-tight">
-                    {member.user_name || 'Unknown'}
-                  </p>
-                  {member.is_managed_member && (
-                    <span className="text-xs text-muted-foreground">Managed</span>
-                  )}
-                </div>
-                <div className="flex gap-1.5">
-                  {[['green', '✓', g], ['amber', '!', a], ['red', '✗', r], ['grey', '—', gr]].map(
-                    ([st, sym, cnt]) => cnt > 0 && (
-                      <span
-                        key={st}
-                        className="w-8 h-8 rounded-md flex items-center justify-center text-sm font-bold"
-                        style={{
-                          background: S[st].bg,
-                          color: S[st].fg,
-                          boxShadow: 'none',
-                        }}
-                      >
-                        {cnt}
-                      </span>
-                    )
-                  )}
-                </div>
-              </div>
-
-              {/* Skills grid */}
-              <div className="p-3 space-y-4">
-                {groupedSkills.map(cat => (
-                  <div key={cat.id}>
-                    <p
-                      className="text-[11px] font-bold uppercase tracking-wider mb-2"
-                      style={{ color: cat.colour || '#6B7280' }}
-                    >
-                      {cat.name}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {cat.skills.map(skill => {
-                        const assessment = currentAssessments[`${member.user_id}-${skill.id}`];
-                        const status     = getRAGStatus(assessment, skill, getReq(member.user_id, skill.id));
-                        const sym        = getCellSymbol(assessment, skill);
-                        return (
-                          <button
-                            key={skill.id}
-                            className="flex flex-col items-center gap-1 group"
-                            onClick={() => setAssessingCell({ userId: member.user_id, userName: member.user_name, skill, assessment })}
-                          >
-                            <div
-                              className="w-11 h-11 rounded-lg flex items-center justify-center font-bold text-xl transition-all group-hover:scale-110"
-                              style={{
-                                background: S[status].bg,
-                                color: S[status].fg,
-                                boxShadow: 'none',
-                              }}
-                            >
-                              {sym}
-                            </div>
-                            <span className="text-[11px] text-muted-foreground max-w-[44px] text-center leading-tight line-clamp-2">
-                              {skill.name}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <Field label="Find a person">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder="Search name…"
+                value={searchMember}
+                onChange={e => setSearchMember(e.target.value)}
+                className="pl-8 h-9 w-44 text-sm"
+              />
             </div>
-          );
-        })}
+          </Field>
+
+          <div className="flex items-center gap-2 ml-auto self-end">
+            <div className="flex rounded-md border border-input overflow-hidden" role="group" aria-label="Row density">
+              {[['comfortable', Rows3, 'Comfortable rows'], ['compact', AlignJustify, 'Compact rows']].map(([key, Icon, title]) => (
+                <button
+                  key={key}
+                  type="button"
+                  title={title}
+                  aria-pressed={density === key}
+                  onClick={() => setDensity(key)}
+                  className={`h-9 w-9 flex items-center justify-center transition-colors ${
+                    density === key ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                </button>
+              ))}
+            </div>
+            <Button variant="outline" size="sm" className="h-9" onClick={handleExport}>
+              <Download className="w-3.5 h-3.5 mr-1.5" /> Export
+            </Button>
+            <Button variant="outline" size="sm" className="h-9" onClick={() => window.print()}>
+              <Printer className="w-3.5 h-3.5 mr-1.5" /> Print
+            </Button>
+          </div>
+        </div>
+
+        {/* Toggles + active-filter summary */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Toggle active={showOnlyIssues} onClick={() => setOnlyIssues(v => !v)} icon={AlertTriangle}>
+            Gaps &amp; expiring only
+          </Toggle>
+          {selectedTeam !== 'all' && (
+            <Toggle active={showOnlyRequired} onClick={() => setOnlyRequired(v => !v)}>
+              Required skills only
+            </Toggle>
+          )}
+
+          <span className="text-xs text-muted-foreground ml-auto">
+            Showing <span className="font-semibold text-foreground">{rows.length}</span> of {peopleInScope.length} people
+            {' · '}
+            <span className="font-semibold text-foreground">{flatSkills.length}</span> of {skills.length} skills
+          </span>
+          {filtersActive && (
+            <button onClick={clearFilters} className="text-xs font-medium text-primary hover:underline flex items-center gap-1">
+              <X className="w-3 h-3" /> Clear filters
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Bulk assess hint */}
-      {selectedTeam !== 'all' && uniqueMembers.length > 0 && (
-        <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
-          <Users className="w-3.5 h-3.5" />
-          <span>Click any skill column header to bulk-assess all team members at once.</span>
+      {/* ── The grid ────────────────────────────────────────────────────────── */}
+      {flatSkills.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card p-10 text-center">
+          <CheckCircle2 className="w-8 h-8 mx-auto mb-3" style={{ color: RAG_THEME.green.bg }} />
+          <p className="text-sm font-semibold text-foreground">
+            {showOnlyIssues ? 'Nothing needs attention' : 'No skills match these filters'}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {showOnlyIssues
+              ? 'No gaps or upcoming expiries in this selection.'
+              : 'Try widening the category or required-skills filters.'}
+          </p>
+          {filtersActive && (
+            <Button variant="outline" size="sm" className="mt-4" onClick={clearFilters}>Clear filters</Button>
+          )}
         </div>
+      ) : (
+        <>
+          <div className="hidden md:block">
+            <SkillsMatrixGrid
+              members={rows}
+              categories={groupedSkills}
+              getCell={getCell}
+              coverage={coverage}
+              density={density}
+              onCellClick={openAssessment}
+              onSkillClick={setBulkSkill}
+            />
+          </div>
+
+          <p className="hidden md:block text-xs text-muted-foreground no-print">
+            Click a cell to record an assessment · click a skill heading to assess everyone at once ·
+            use the arrow keys to move around the grid
+          </p>
+
+          {/* ── Mobile: one card per person ───────────────────────────────── */}
+          <div className="md:hidden space-y-3">
+            {rows.length === 0 && (
+              <p className="py-12 text-center text-sm text-muted-foreground">No people match your filters.</p>
+            )}
+            {rows.map(row => (
+              <MobilePersonCard
+                key={row.id}
+                row={row}
+                groupedSkills={groupedSkills}
+                getCell={getCell}
+                onCellClick={openAssessment}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       {assessingCell && (
@@ -735,21 +528,13 @@ export default function SkillsMatrix() {
           existingAssessment={assessingCell.assessment}
           orgId={org.id}
           onClose={() => setAssessingCell(null)}
-          onSaved={(savedAssessment) => {
-            if (savedAssessment === null) {
-              // Assessment cleared (Not Required) — remove from local state
-              setAssessments(prev => prev.filter(a =>
+          onSaved={(saved) => {
+            setAssessments(prev => {
+              const without = prev.filter(a =>
                 !(a.user_id === assessingCell.userId && a.skill_id === assessingCell.skill.id)
-              ));
-            } else {
-              // Optimistic update
-              setAssessments(prev => {
-                const without = prev.filter(a =>
-                  !(a.user_id === savedAssessment.user_id && a.skill_id === savedAssessment.skill_id)
-                );
-                return [...without, savedAssessment];
-              });
-            }
+              );
+              return saved === null ? without : [...without, saved];
+            });
             setAssessingCell(null);
             loadData();
           }}
@@ -759,11 +544,143 @@ export default function SkillsMatrix() {
       {bulkSkill && (
         <BulkAssessmentModal
           skill={bulkSkill}
-          members={uniqueMembers}
+          members={rows.map(r => ({ user_id: r.id, user_name: r.name }))}
           orgId={org.id}
           onClose={() => setBulkSkill(null)}
           onSaved={loadData}
         />
+      )}
+    </div>
+  );
+}
+
+// ─── Small building blocks ──────────────────────────────────────────────────
+function SummaryTile({ label, value, hint, icon: Icon, tone, wide }) {
+  return (
+    <div className={`rounded-xl border border-border bg-card shadow-card px-4 py-3 ${wide ? 'min-w-[184px]' : 'min-w-[140px]'} flex-1`}>
+      <div className="flex items-center gap-1.5">
+        {Icon && <Icon className="w-3.5 h-3.5 text-muted-foreground" />}
+        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
+      </div>
+      <p
+        className="font-jakarta text-2xl font-bold leading-none mt-1.5 tabular-nums inline-block rounded-md"
+        style={tone ? { background: tone.bg, color: tone.fg, padding: '2px 8px' } : undefined}
+      >
+        {value}
+      </p>
+      <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">{hint}</p>
+    </div>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function Toggle({ active, onClick, icon: Icon, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`h-8 inline-flex items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors ${
+        active
+          ? 'bg-primary text-primary-foreground border-primary'
+          : 'bg-background text-muted-foreground border-input hover:bg-muted hover:text-foreground'
+      }`}
+    >
+      {Icon && <Icon className="w-3 h-3" />}
+      {children}
+    </button>
+  );
+}
+
+function MobilePersonCard({ row, groupedSkills, getCell, onCellClick }) {
+  const [open, setOpen] = useState(false);
+  const cs = coverageStyle(row.score ?? 0);
+  return (
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <button
+        className="w-full flex items-center gap-3 px-4 py-3 text-left"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+      >
+        <div className="flex-1 min-w-0">
+          <p className="text-[15px] font-bold text-foreground leading-tight truncate">{row.name}</p>
+          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+            {row.counts.red > 0 && (
+              <span className="text-[10px] font-bold rounded px-1.5 py-px" style={{ background: RAG_THEME.red.chipBg, color: RAG_THEME.red.chipFg }}>
+                {row.counts.red} gap{row.counts.red === 1 ? '' : 's'}
+              </span>
+            )}
+            {row.counts.amber > 0 && (
+              <span className="text-[10px] font-bold rounded px-1.5 py-px" style={{ background: RAG_THEME.amber.chipBg, color: RAG_THEME.amber.chipFg }}>
+                {row.counts.amber} expiring
+              </span>
+            )}
+            {row.counts.red === 0 && row.counts.amber === 0 && (
+              <span className="text-[10px] font-bold rounded px-1.5 py-px" style={{ background: RAG_THEME.green.chipBg, color: RAG_THEME.green.chipFg }}>
+                All current
+              </span>
+            )}
+          </div>
+        </div>
+        <span
+          className="rounded-md font-bold text-xs tabular-nums shrink-0"
+          style={{ background: cs.bg, color: cs.fg, padding: '4px 7px' }}
+        >
+          {row.score === null ? '—' : `${row.score}%`}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-muted-foreground shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="border-t border-border divide-y divide-border">
+          {groupedSkills.map(cat => (
+            <div key={cat.id} className="px-4 py-3">
+              <p className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: cat.colour }}>
+                {cat.name}
+              </p>
+              <div className="space-y-1.5">
+                {cat.skills.map(skill => {
+                  const cell = getCell(row.id, skill.id);
+                  const theme = RAG_THEME[cell.status];
+                  const quiet = cell.status === 'grey';
+                  return (
+                    <button
+                      key={skill.id}
+                      className="w-full flex items-center gap-3 py-1 text-left"
+                      onClick={() => onCellClick({ id: row.id, name: row.name }, skill, cell)}
+                    >
+                      <span
+                        className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-base shrink-0 relative"
+                        style={{
+                          background: quiet ? 'transparent' : theme.bg,
+                          color: theme.fg,
+                          border: quiet ? '1px dashed hsl(var(--border))' : 'none',
+                        }}
+                      >
+                        {cell.symbol}
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block text-sm font-medium text-foreground truncate">{skill.name}</span>
+                        <span className="block text-xs text-muted-foreground">
+                          {cell.label}
+                          {cell.expiryDate ? ` · expires ${cell.expiryDate}` : ''}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
